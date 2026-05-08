@@ -23,15 +23,16 @@
 	--input: oklch(1 0 0 / 18%);
 	--ring: oklch(0.556 0 0);
 	--radius: 0.625rem;
-	--seat-booked: #ef4444;
-	--seat-blocked: #4b5563;
-	--seat-normal: #6366f1;
-	--seat-honeymoon: #f43f5e;
-	--seat-privilege-plus: #f97316;
-	--seat-privilege-normal: #eab308;
-	--seat-vip: #ec4899;
-	--seat-premium: #dc2626;
-	--seat-balcony: #10b981;
+	--seat-booked: #EF4444;
+	--seat-blocked: #475569;
+	--seat-normal: #4ADE80;
+	--seat-honeymoon: #F472B6;
+	--seat-privilege-plus: #A78BFA;
+	--seat-privilege-normal: #818CF8;
+	--seat-vip: #FBBF24;
+	--seat-premium: #E879F9;
+	--seat-balcony: #38BDF8;
+	--seat-scanned: #F97316;
 
 	--font-sans: var(--font-ibm-plex-sans-thai, system-ui);
 	--font-mono: var(--font-jetbrains-mono, monospace);
@@ -70,6 +71,11 @@ body {
 	background: var(--background);
 	color: var(--foreground);
 	font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@keyframes scan-flash {
+	0%   { opacity: 1; }
+	100% { opacity: 0; }
 }
 
 /* Hide scrollbars on the seat map but keep scrolling */

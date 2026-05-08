@@ -28,13 +28,13 @@ QR codes and assign seats; admins have full override and analytics.
    ```
 
    You need:
-   - A Supabase project — copy the pooled (`?pgbouncer=true`) and direct
-     connection strings into `DATABASE_URL` and `DIRECT_URL`.
-   - The Supabase URL and anon key for `NEXT_PUBLIC_SUPABASE_*`. The service
-     role key is only used server-side to broadcast on the `seats` channel.
-   - A Google OAuth client (Web). Whitelist
-     `<BETTER_AUTH_URL>/api/auth/callback/google` as the redirect URI.
-   - `BETTER_AUTH_SECRET=$(openssl rand -hex 32)`
+    - A Supabase project — copy the pooled (`?pgbouncer=true`) and direct
+      connection strings into `DATABASE_URL` and `DIRECT_URL`.
+    - The Supabase URL and anon key for `NEXT_PUBLIC_SUPABASE_*`. The service
+      role key is only used server-side to broadcast on the `seats` channel.
+    - A Google OAuth client (Web). Whitelist
+      `<BETTER_AUTH_URL>/api/auth/callback/google` as the redirect URI.
+    - `BETTER_AUTH_SECRET=$(openssl rand -hex 32)`
 
 3. **Run the database migration and seed**:
 
@@ -54,19 +54,19 @@ QR codes and assign seats; admins have full override and analytics.
 
 ## Routes
 
-| Route                | Audience          | Purpose                                  |
-| -------------------- | ----------------- | ---------------------------------------- |
-| `/`                  | any               | Redirects to the right home for the role |
-| `/login`             | staff / admin     | Username + password login                |
-| `/register`          | student           | Google OAuth + registration form         |
-| `/register/how-to`   | student           | Movie-day walkthrough                    |
-| `/register/ticket`   | student           | QR ticket + assigned seat                |
-| `/staff`             | staff / admin     | Live seat map                            |
-| `/staff/scan`        | staff / admin     | QR scanner (single + multi mode)         |
-| `/admin`             | admin             | Dashboard + interactive map              |
-| `/admin/scan`        | admin             | Scanner with override capability         |
-| `/admin/staff`       | admin             | Staff account CRUD                       |
-| `/admin/logs`        | admin             | Filterable booking log + CSV export      |
+| Route              | Audience      | Purpose                                  |
+|--------------------|---------------|------------------------------------------|
+| `/`                | any           | Redirects to the right home for the role |
+| `/login`           | staff / admin | Username + password login                |
+| `/register`        | student       | Google OAuth + registration form         |
+| `/register/how-to` | student       | Movie-day walkthrough                    |
+| `/register/ticket` | student       | QR ticket + assigned seat                |
+| `/staff`           | staff / admin | Live seat map                            |
+| `/staff/scan`      | staff / admin | QR scanner (single + multi mode)         |
+| `/admin`           | admin         | Dashboard + interactive map              |
+| `/admin/scan`      | admin         | Scanner with override capability         |
+| `/admin/staff`     | admin         | Staff account CRUD                       |
+| `/admin/logs`      | admin         | Filterable booking log + CSV export      |
 
 ## Realtime
 
