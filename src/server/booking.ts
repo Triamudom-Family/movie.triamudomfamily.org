@@ -178,6 +178,99 @@ export async function cancelBooking(
 	return result;
 }
 
+export async function setRowBlocked(
+	row: string,
+	performedBy: string,
+	blocked: boolean,
+	note?: string,
+): Promise<{ count: number }> {
+	const seats = await prisma.seat.findMany({
+		where: {row, status: blocked ? "AVAILABLE" : "BLOCKED"},
+		select: {id: true},
+	});
+	if (seats.length === 0) return {count: 0};
+	const ids = seats.map((s) => s.id);
+	const newStatus = blocked ? "BLOCKED" : "AVAILABLE";
+	await prisma.$transaction([
+		prisma.seat.updateMany({
+			where: {id: {in: ids}},
+			data: {status: newStatus, bookedBy: null, bookedAt: null},
+		}),
+		prisma.bookingLog.createMany({
+			data: ids.map((seatId) => ({
+				seatId,
+				action: blocked ? "BLOCKED" : "UNBLOCKED",
+				performedBy,
+				note: note ?? `Row ${row} ${blocked ? "blocked" : "unblocked"} in bulk`,
+			})),
+		}),
+	]);
+	await Promise.all(ids.map((id) => broadcastSeatUpdate(id, newStatus as "BLOCKED" | "AVAILABLE")));
+	return {count: ids.length};
+}
+
+export async function setSectionBlocked(
+	section: string,
+	performedBy: string,
+	blocked: boolean,
+	note?: string,
+): Promise<{ count: number }> {
+	const seats = await prisma.seat.findMany({
+		where: {section, status: blocked ? "AVAILABLE" : "BLOCKED"},
+		select: {id: true},
+	});
+	if (seats.length === 0) return {count: 0};
+	const ids = seats.map((s) => s.id);
+	const newStatus = blocked ? "BLOCKED" : "AVAILABLE";
+	await prisma.$transaction([
+		prisma.seat.updateMany({
+			where: {id: {in: ids}},
+			data: {status: newStatus, bookedBy: null, bookedAt: null},
+		}),
+		prisma.bookingLog.createMany({
+			data: ids.map((seatId) => ({
+				seatId,
+				action: blocked ? "BLOCKED" : "UNBLOCKED",
+				performedBy,
+				note: note ?? `Section ${section} ${blocked ? "blocked" : "unblocked"} in bulk`,
+			})),
+		}),
+	]);
+	await Promise.all(ids.map((id) => broadcastSeatUpdate(id, newStatus as "BLOCKED" | "AVAILABLE")));
+	return {count: ids.length};
+}
+
+export async function setSeatTypeBlocked(
+	type: string,
+	performedBy: string,
+	blocked: boolean,
+	note?: string,
+): Promise<{ count: number }> {
+	const seats = await prisma.seat.findMany({
+		where: {type, status: blocked ? "AVAILABLE" : "BLOCKED"},
+		select: {id: true},
+	});
+	if (seats.length === 0) return {count: 0};
+	const ids = seats.map((s) => s.id);
+	const newStatus = blocked ? "BLOCKED" : "AVAILABLE";
+	await prisma.$transaction([
+		prisma.seat.updateMany({
+			where: {id: {in: ids}},
+			data: {status: newStatus, bookedBy: null, bookedAt: null},
+		}),
+		prisma.bookingLog.createMany({
+			data: ids.map((seatId) => ({
+				seatId,
+				action: blocked ? "BLOCKED" : "UNBLOCKED",
+				performedBy,
+				note: note ?? `Zone ${type} ${blocked ? "blocked" : "unblocked"} in bulk`,
+			})),
+		}),
+	]);
+	await Promise.all(ids.map((id) => broadcastSeatUpdate(id, newStatus as "BLOCKED" | "AVAILABLE")));
+	return {count: ids.length};
+}
+
 export async function setSeatBlocked(
 	seatId: string,
 	performedBy: string,
