@@ -14,7 +14,7 @@ export async function PATCH(request: Request) {
 	const auth = await requireUser(["ADMIN"]);
 	if (!auth) return NextResponse.json({error: "Unauthorized"}, {status: 401});
 
-	const body: Record<string, unknown> = await request.json();
+	const body: Record<string, unknown> = await request.json().catch(() => null) ?? {};
 
 	await Promise.all(
 		ALLOWED_KEYS.map((key) => {
