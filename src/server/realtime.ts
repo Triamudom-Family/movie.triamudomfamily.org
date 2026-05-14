@@ -1,4 +1,4 @@
-export type SeatBroadcastStatus = "AVAILABLE" | "BOOKED" | "BLOCKED";
+export type SeatBroadcastStatus = "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN";
 
 async function httpBroadcast(
 	messages: {topic: string; event: string; payload: object}[],

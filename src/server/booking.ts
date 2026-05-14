@@ -22,6 +22,8 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 			const seat = await tx.seat.findUnique({where: {id: seatId}});
 			if (!seat) throw new Error("SEAT_NOT_FOUND");
 
+			if (seat.status === "BROKEN") throw new Error("SEAT_BROKEN");
+
 			if (seat.status === "BLOCKED") {
 				if (!isAdmin) throw new Error("SEAT_BLOCKED");
 			}
@@ -129,6 +131,12 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 			return {ok: false, error: "Seat not found", status: 404};
 		if (msg === "STUDENT_NOT_FOUND")
 			return {ok: false, error: "Student not found", status: 404};
+		if (msg === "SEAT_BROKEN")
+			return {
+				ok: false,
+				error: "This seat is marked as broken.",
+				status: 409,
+			};
 		if (msg === "SEAT_BLOCKED")
 			return {
 				ok: false,
@@ -301,4 +309,30 @@ export async function setSeatBlocked(
 		});
 	});
 	await broadcastSeatUpdate(seatId, blocked ? "BLOCKED" : "AVAILABLE");
+}
+
+export async function setSeatBroken(
+	seatId: string,
+	performedBy: string,
+	broken: boolean,
+	note?: string,
+) {
+	await prisma.$transaction(async (tx) => {
+		const seat = await tx.seat.findUnique({where: {id: seatId}});
+		if (!seat) throw new Error("SEAT_NOT_FOUND");
+		if (broken && seat.status === "BOOKED") throw new Error("SEAT_BOOKED");
+		await tx.seat.update({
+			where: {id: seatId},
+			data: {status: broken ? "BROKEN" : "AVAILABLE", bookedBy: null, bookedAt: null},
+		});
+		await tx.bookingLog.create({
+			data: {
+				seatId,
+				action: broken ? "BROKEN" : "FIXED",
+				performedBy,
+				note,
+			},
+		});
+	});
+	await broadcastSeatUpdate(seatId, broken ? "BROKEN" : "AVAILABLE");
 }

@@ -6,7 +6,7 @@ import {ROW_LABELS, SEAT_LAYOUT, type SeatType} from "@/lib/seat-layout";
 import {getSupabaseClient, SEAT_CHANNEL, SEAT_EVENT} from "@/lib/supabase-client";
 import {cn} from "@/lib/utils";
 
-export type SeatStatusValue = "AVAILABLE" | "BOOKED" | "BLOCKED";
+export type SeatStatusValue = "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN";
 export type SeatStatusMap = Record<string, SeatStatusValue>;
 
 export type SeatMapProps = {
@@ -166,6 +166,7 @@ export function SeatMap({
 						const isOwned = ownedSet.has(s.id);
 						const clickable =
 							!!onSeatClick &&
+							seatStatus !== "BROKEN" &&
 							(isAdmin || seatStatus === "AVAILABLE" || isOwned);
 						const fillColor =
 							seatStatus === "AVAILABLE"
@@ -174,7 +175,9 @@ export function SeatMap({
 									? isOwned
 										? "var(--seat-scanned)"
 										: "var(--seat-booked)"
-									: "var(--seat-blocked)";
+									: seatStatus === "BROKEN"
+										? "var(--seat-broken)"
+										: "var(--seat-blocked)";
 						const strokeColor = isSelected ? "#ffffff" : NEUTRAL_STROKE;
 						return (
 							<button
@@ -233,6 +236,7 @@ export function SeatLegend() {
 			<LegendSeat fill="var(--seat-booked)" stroke={NEUTRAL_STROKE} label="Booked"/>
 			<LegendSeat fill="var(--seat-scanned)" stroke={NEUTRAL_STROKE} label="Scanned"/>
 			<LegendSeat fill="var(--seat-blocked)" stroke={NEUTRAL_STROKE} label="Blocked"/>
+			<LegendSeat fill="var(--seat-broken)" stroke={NEUTRAL_STROKE} label="Broken"/>
 		</div>
 	);
 }

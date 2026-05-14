@@ -89,6 +89,10 @@ export function AdminDashboard() {
 	const [selectedRow, setSelectedRow] = useState<string>("");
 	const [busy, setBusy] = useState<string | null>(null);
 	const [blockedSeats, setBlockedSeats] = useState<BlockedSeat[]>([]);
+	const [brokenSeats, setBrokenSeats] = useState<BlockedSeat[]>([]);
+	const [breakRow, setBreakRow] = useState("");
+	const [breakSeatNum, setBreakSeatNum] = useState("");
+	const [breakBusy, setBreakBusy] = useState<string | null>(null);
 	const [blockRow, setBlockRow] = useState("");
 	const [blockSeatNum, setBlockSeatNum] = useState("");
 	const [seatBusy, setSeatBusy] = useState<string | null>(null);
@@ -134,10 +138,9 @@ export function AdminDashboard() {
 		const r = await fetch("/api/seats");
 		if (r.ok) {
 			const data = await r.json();
-			const blocked: BlockedSeat[] = (data.seats as {id: string; row: string; number: number; status: string}[])
-				.filter((s) => s.status === "BLOCKED")
-				.sort((a, b) => a.id.localeCompare(b.id));
-			setBlockedSeats(blocked);
+			const seats = data.seats as {id: string; row: string; number: number; status: string}[];
+			setBlockedSeats(seats.filter((s) => s.status === "BLOCKED").sort((a, b) => a.id.localeCompare(b.id)));
+			setBrokenSeats(seats.filter((s) => s.status === "BROKEN").sort((a, b) => a.id.localeCompare(b.id)));
 		}
 	}, []);
 
@@ -259,6 +262,45 @@ export function AdminDashboard() {
 		} else {
 			const data = await r.json();
 			toast.error(data.error ?? `Failed to block ${id}`);
+		}
+	}
+
+	async function breakSeat() {
+		if (!breakRow || !breakSeatNum) return;
+		const id = `${breakRow}-${breakSeatNum}`;
+		setBreakBusy(id);
+		const r = await fetch(`/api/seats/${encodeURIComponent(id)}/break`, {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: "{}",
+		});
+		setBreakBusy(null);
+		if (r.ok) {
+			toast.success(`${id} marked as broken`);
+			setBreakRow("");
+			setBreakSeatNum("");
+			fetchBlockedSeats();
+			fetchRowStatuses();
+		} else {
+			const data = await r.json();
+			toast.error(data.error ?? `Failed to mark ${id} as broken`);
+		}
+	}
+
+	async function fixSeat(seatId: string) {
+		setBreakBusy(seatId);
+		const r = await fetch(`/api/seats/${encodeURIComponent(seatId)}/fix`, {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: "{}",
+		});
+		setBreakBusy(null);
+		if (r.ok) {
+			toast.success(`${seatId} marked as fixed`);
+			fetchBlockedSeats();
+			fetchRowStatuses();
+		} else {
+			toast.error(`Failed to fix ${seatId}`);
 		}
 	}
 
@@ -714,6 +756,48 @@ export function AdminDashboard() {
 					</CardContent>
 				</Card>
 			</div>
+
+			<Card>
+				<CardHeader>
+					<div className="flex items-center justify-between">
+						<CardTitle>Broken seats</CardTitle>
+						{brokenSeats.length > 0 && <Badge variant="destructive">{brokenSeats.length} seat{brokenSeats.length !== 1 ? "s" : ""} broken</Badge>}
+					</div>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="flex flex-wrap items-end gap-2">
+						<div className="flex flex-col gap-1">
+							<label className="text-xs text-muted-foreground">Row</label>
+							<Select value={breakRow} onValueChange={(v) => { setBreakRow(v); setBreakSeatNum(""); }}>
+								<SelectTrigger className="w-28"><SelectValue placeholder="Row"/></SelectTrigger>
+								<SelectContent>{ROW_ORDER.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+							</Select>
+						</div>
+						<div className="flex flex-col gap-1">
+							<label className="text-xs text-muted-foreground">Seat</label>
+							<Select value={breakSeatNum} onValueChange={setBreakSeatNum} disabled={!breakRow}>
+								<SelectTrigger className="w-28"><SelectValue placeholder="Seat"/></SelectTrigger>
+								<SelectContent>{(rowSeatsMap[breakRow] ?? []).map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
+							</Select>
+						</div>
+						<Button variant="destructive" size="sm" disabled={!breakRow || !breakSeatNum || breakBusy !== null} onClick={breakSeat}>
+							Mark broken
+						</Button>
+					</div>
+					{brokenSeats.length === 0 ? (
+						<p className="text-sm text-muted-foreground">No broken seats.</p>
+					) : (
+						<div className="divide-y divide-zinc-800 rounded-md border border-amber-800/50 overflow-hidden">
+							{brokenSeats.map((s) => (
+								<div key={s.id} className="flex items-center justify-between bg-amber-950/20 px-4 py-2.5">
+									<span className="text-sm font-bold text-amber-400">{s.id}</span>
+									<Button variant="outline" size="sm" disabled={breakBusy === s.id} onClick={() => fixSeat(s.id)}>Mark fixed</Button>
+								</div>
+							))}
+						</div>
+					)}
+				</CardContent>
+			</Card>
 
 			{rowStatuses.length > 0 && show.rowOverview && (
 				<Card>

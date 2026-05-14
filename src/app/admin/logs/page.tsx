@@ -118,7 +118,7 @@ function formatSeatRange(seatIds: string[]): string {
 		.join(", ");
 }
 
-const ACTIONS = ["", "BOOKED", "OVERRIDE", "CANCELLED", "OVERRIDDEN", "BLOCKED", "UNBLOCKED"];
+const ACTIONS = ["", "BOOKED", "OVERRIDE", "CANCELLED", "OVERRIDDEN", "BLOCKED", "UNBLOCKED", "BROKEN", "FIXED"];
 
 export default function LogsPage() {
 	const [logs, setLogs] = useState<Log[]>([]);
