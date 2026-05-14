@@ -59,6 +59,7 @@ export default function StudentsPage() {
 	const [loading, setLoading] = useState(false);
 	const [filters, setFilters] = useState({q: "", class: "", seat: ""});
 	const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
+	const [deleting, setDeleting] = useState(false);
 	const isMount = useRef(true);
 
 	async function load() {
@@ -85,8 +86,10 @@ export default function StudentsPage() {
 	}, [filters.q, filters.class]);
 
 	async function deleteStudent() {
-		if (!deleteTarget) return;
+		if (!deleteTarget || deleting) return;
+		setDeleting(true);
 		const res = await fetch(`/api/students/${deleteTarget.id}`, {method: "DELETE"});
+		setDeleting(false);
 		if (res.ok) {
 			toast.success("Student deleted");
 			setDeleteTarget(null);
@@ -281,8 +284,8 @@ export default function StudentsPage() {
 						<Button variant="outline" onClick={() => setDeleteTarget(null)}>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={deleteStudent}>
-							Delete
+						<Button variant="destructive" onClick={deleteStudent} disabled={deleting}>
+							{deleting ? "Deleting…" : "Delete"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

@@ -103,9 +103,9 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 				data: {
 					seatId,
 					studentId: student.id,
-					action: "BOOKED",
+					action: overrode ? "OVERRIDE" : "BOOKED",
 					performedBy,
-					note: overrode ? note ?? "Override booking" : note,
+					note: overrode ? note ?? "Admin override booking" : note,
 				},
 			});
 

@@ -105,6 +105,7 @@ export function AdminDashboard() {
 	const [rowOverviewExpanded, setRowOverviewExpanded] = useState(true);
 	const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 	const [relativeTime, setRelativeTime] = useState("");
+	const [analyticsError, setAnalyticsError] = useState(false);
 	const {show} = useDashboardSettings();
 
 	const rowSeatsMap: Record<string, number[]> = {};
@@ -152,7 +153,12 @@ export function AdminDashboard() {
 	}, []);
 
 	const refreshAll = useCallback(() => {
-		fetch("/api/analytics").then((r) => { if (r.ok) r.json().then(setAnalytics); });
+		fetch("/api/analytics")
+			.then((r) => {
+				if (r.ok) return r.json().then((d) => { setAnalytics(d); setAnalyticsError(false); });
+				setAnalyticsError(true);
+			})
+			.catch(() => setAnalyticsError(true));
 		fetchRowStatuses();
 		fetchSectionStatuses();
 		fetchBlockedSeats();
@@ -374,6 +380,14 @@ export function AdminDashboard() {
 						accent={analytics && analytics.studentsWaiting > 0 ? "amber" : "green"}
 					/>
 				</div>
+				{analyticsError && (
+					<div className="flex items-center justify-between rounded-md border border-rose-800 bg-rose-950/40 px-4 py-2.5 text-sm text-rose-300">
+						<span>Analytics failed to load — stats may be outdated.</span>
+						<Button size="sm" variant="outline" onClick={refreshAll} className="ml-4 h-7 text-xs">
+							Retry
+						</Button>
+					</div>
+				)}
 			</div>
 
 			{analytics && show.doubleBookingConflicts && (analytics.conflicts.bookedNoStudent.length > 0 || analytics.conflicts.studentSeatMismatch.length > 0) && (

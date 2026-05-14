@@ -27,24 +27,28 @@ export function RegisterForm({email}: {email: string}) {
 			return;
 		}
 		start(async () => {
-			const res = await fetch("/api/students/register", {
-				method: "POST",
-				headers: {"Content-Type": "application/json"},
-				body: JSON.stringify({
-					name: form.name,
-					surname: form.surname,
-					class: form.class,
-					rollNumber: Number(form.rollNumber),
-					studentId: form.studentId,
-				}),
-			});
-			const data = await res.json();
-			if (!res.ok) {
-				toast.error(data.error ?? "การลงทะเบียนล้มเหลว");
-				return;
+			try {
+				const res = await fetch("/api/students/register", {
+					method: "POST",
+					headers: {"Content-Type": "application/json"},
+					body: JSON.stringify({
+						name: form.name,
+						surname: form.surname,
+						class: form.class,
+						rollNumber: Number(form.rollNumber),
+						studentId: form.studentId,
+					}),
+				});
+				const data = await res.json();
+				if (!res.ok) {
+					toast.error(data.error ?? "การลงทะเบียนล้มเหลว");
+					return;
+				}
+				toast.success("ลงทะเบียนสำเร็จ!");
+				router.push("/register/how-to");
+			} catch {
+				toast.error("เกิดข้อผิดพลาดเครือข่าย กรุณาลองใหม่อีกครั้ง");
 			}
-			toast.success("ลงทะเบียนสำเร็จ!");
-			router.push("/register/how-to");
 		});
 	}
 
