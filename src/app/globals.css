@@ -33,7 +33,8 @@
 	--seat-vip: #FBBF24;
 	--seat-premium: #E879F9;
 	--seat-balcony: #38BDF8;
-	--seat-scanned: #F97316;
+	--seat-scanned: #14B8A6;
+	--seat-broken: #F97316;
 
 	--font-sans: var(--font-ibm-plex-sans-thai, system-ui);
 	--font-mono: var(--font-jetbrains-mono, monospace);

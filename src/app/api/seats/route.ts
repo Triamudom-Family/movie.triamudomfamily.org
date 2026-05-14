@@ -15,6 +15,7 @@ export async function GET() {
 			section: true,
 			type: true,
 			status: true,
+			note: true,
 		},
 	});
 	return NextResponse.json({seats});

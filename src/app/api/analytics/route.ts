@@ -40,6 +40,7 @@ export async function GET() {
 		available: counts.find((c) => c.status === "AVAILABLE")?._count._all ?? 0,
 		booked: counts.find((c) => c.status === "BOOKED")?._count._all ?? 0,
 		blocked: counts.find((c) => c.status === "BLOCKED")?._count._all ?? 0,
+		broken: counts.find((c) => c.status === "BROKEN")?._count._all ?? 0,
 	};
 
 	const userById = new Map(staffUsers.map((u) => [u.id, u]));
@@ -57,12 +58,13 @@ export async function GET() {
 		.map(([hour, count]) => ({hour, count}));
 
 	// Bookings by seat type
-	const typeMap = new Map<string, {booked: number; available: number; blocked: number}>();
+	const typeMap = new Map<string, {booked: number; available: number; blocked: number; broken: number}>();
 	for (const c of countsByType) {
-		const entry = typeMap.get(c.type) ?? {booked: 0, available: 0, blocked: 0};
+		const entry = typeMap.get(c.type) ?? {booked: 0, available: 0, blocked: 0, broken: 0};
 		if (c.status === "BOOKED") entry.booked = c._count._all;
 		else if (c.status === "AVAILABLE") entry.available = c._count._all;
 		else if (c.status === "BLOCKED") entry.blocked = c._count._all;
+		else if (c.status === "BROKEN") entry.broken = c._count._all;
 		typeMap.set(c.type, entry);
 	}
 	const bookingsByType = Array.from(typeMap.entries()).map(([type, counts]) => ({type, ...counts}));

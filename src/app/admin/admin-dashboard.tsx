@@ -29,8 +29,8 @@ import {ROW_LABELS, SEAT_LAYOUT, SEAT_TYPE_COLORS, SEAT_TYPE_LABELS, SeatType} f
 import {useDashboardSettings} from "./dashboard-settings";
 
 type Analytics = {
-	summary: { total: number; available: number; booked: number; blocked: number };
-	bookingsByType: { type: string; booked: number; available: number; blocked: number }[];
+	summary: { total: number; available: number; booked: number; blocked: number; broken: number };
+	bookingsByType: { type: string; booked: number; available: number; blocked: number; broken: number }[];
 	bookingsPerHour: { hour: string; count: number }[];
 	bookingsPerStaff: { userId: string; username: string; count: number }[];
 	studentsTotal: number;
@@ -48,6 +48,7 @@ type RowStatus = {
 	available: number;
 	blocked: number;
 	booked: number;
+	broken: number;
 };
 
 type SectionStatus = {
@@ -55,6 +56,7 @@ type SectionStatus = {
 	available: number;
 	blocked: number;
 	booked: number;
+	broken: number;
 };
 
 const SECTION_LABELS: Record<string, string> = {left: "Left", center: "Center", right: "Right"};
@@ -64,6 +66,7 @@ type BlockedSeat = {
 	id: string;
 	row: string;
 	number: number;
+	note?: string | null;
 };
 
 type ActivityEntry = {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {CountdownTimer} from "@/components/countdown-timer";
 import type {EventSettings} from "@/server/settings";
 
@@ -110,7 +110,11 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 		{label: "VENUE", value: venue ?? "Paragon Cineplex"},
 	];
 
-	const showCountdown = !!eventAt && new Date(eventAt).getTime() > Date.now();
+	const [showCountdown, setShowCountdown] = useState(false);
+	useEffect(() => {
+		setShowCountdown(!!eventAt && new Date(eventAt).getTime() > Date.now());
+	}, [eventAt]);
+
 	return (
 		<div className="bg-[#050509] text-white">
 

@@ -2,7 +2,7 @@
 
 import {useState} from "react";
 import {toast} from "sonner";
-import {SeatMap, type SeatStatusMap, type SeatStatusValue} from "@/components/seat/seat-map";
+import {SeatMap, type SeatStatusMap} from "@/components/seat/seat-map";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -20,7 +20,8 @@ import {type SeatType} from "@/lib/seat-layout";
 type SeatInfo = {
 	seat: {
 		id: string;
-		status: SeatStatusValue;
+		status: "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN";
+		note: string | null;
 		bookedBy: string | null;
 		bookedAt: string | null;
 		student: {
@@ -52,6 +53,8 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 		| { kind: "cancel"; seatId: string }
 		| { kind: "block"; seatId: string }
 		| { kind: "unblock"; seatId: string }
+		| { kind: "break"; seatId: string }
+		| { kind: "unbreak"; seatId: string }
 		| null
 	>(null);
 	const [search, setSearch] = useState("");
@@ -61,6 +64,7 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 	const [assignBlocked, setAssignBlocked] = useState(false);
 	const [confirmLoading, setConfirmLoading] = useState(false);
 	const [confirmSuccess, setConfirmSuccess] = useState(false);
+	const [confirmNote, setConfirmNote] = useState("");
 	const [moveConfirm, setMoveConfirm] = useState<{ student: SearchedStudent; targetSeat: string } | null>(null);
 
 	async function loadInfo(seatId: string) {
@@ -72,7 +76,7 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 
 	function handleSeatClick(
 		seatId: string,
-		status: SeatStatusValue,
+		status: "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN",
 		_type: SeatType,
 	) {
 		if (status === "AVAILABLE") {
@@ -157,6 +161,21 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 				body: "{}",
 			});
 			ok = res.ok;
+		} else if (action.kind === "break") {
+			const res = await fetch(`/api/seats/${action.seatId}/break`, {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({note: confirmNote || undefined}),
+			});
+			ok = res.ok;
+			if (!ok) errorMsg = (await res.json().catch(() => ({}))).error ?? "Failed";
+		} else if (action.kind === "unbreak") {
+			const res = await fetch(`/api/seats/${action.seatId}/unbreak`, {
+				method: "POST",
+				headers: {"Content-Type": "application/json"},
+				body: JSON.stringify({note: confirmNote || undefined}),
+			});
+			ok = res.ok;
 		}
 
 		setConfirmLoading(false);
@@ -165,6 +184,7 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 			setTimeout(() => {
 				setConfirmSuccess(false);
 				setConfirmAction(null);
+				setConfirmNote("");
 				setOpenSeat(null);
 			}, 1000);
 		} else {
@@ -221,6 +241,12 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 									on {new Date(info.seat.bookedAt).toLocaleString("en-GB", {timeZone: "Asia/Bangkok"})}
 								</div>
 							)}
+							{info.seat.status === "BROKEN" && info.seat.note && (
+								<div className="rounded-md border border-orange-800/50 bg-orange-950/30 px-3 py-2 text-xs text-orange-300">
+									<span className="font-semibold uppercase tracking-wider text-orange-500">Note · </span>
+									{info.seat.note}
+								</div>
+							)}
 							<div className="flex flex-wrap gap-2 w-full">
 								{info.seat.status === "BOOKED" && (
 									<Button
@@ -253,6 +279,24 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 										onClick={() => setConfirmAction({kind: "block", seatId: info.seat.id})}
 									>
 										Block (after cancelling)
+									</Button>
+								)}
+								{(info.seat.status === "AVAILABLE" || info.seat.status === "BLOCKED") && (
+									<Button
+										variant="outline"
+										className="border-amber-700 text-amber-500 hover:bg-amber-950"
+										onClick={() => setConfirmAction({kind: "break", seatId: info.seat.id})}
+									>
+										Mark as broken
+									</Button>
+								)}
+								{info.seat.status === "BROKEN" && (
+									<Button
+										variant="secondary"
+										className="w-full"
+										onClick={() => setConfirmAction({kind: "unbreak", seatId: info.seat.id})}
+									>
+										Repair seat
 									</Button>
 								)}
 							</div>
@@ -295,14 +339,28 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 									Search for a student by name, surname, class, or student ID.
 								</DialogDescription>
 							</DialogHeader>
-							<Button
-								variant="destructive"
-								className="w-full"
-								disabled={blockingAssign || assignBlocked}
-								onClick={blockAssignTarget}
-							>
-								{blockingAssign ? "Blocking…" : assignBlocked ? "Blocked" : "Block seat"}
-							</Button>
+							<div className="flex gap-2">
+								<Button
+									variant="destructive"
+									className="flex-1"
+									disabled={blockingAssign || assignBlocked}
+									onClick={blockAssignTarget}
+								>
+									{blockingAssign ? "Blocking…" : assignBlocked ? "Blocked" : "Block seat"}
+								</Button>
+								<Button
+									variant="outline"
+									className="flex-1 border-orange-700 text-orange-400 hover:bg-orange-950"
+									onClick={() => {
+										const seatId = assignTarget!;
+										setAssignTarget(null);
+										setConfirmNote("");
+										setConfirmAction({kind: "break", seatId});
+									}}
+								>
+									Mark as broken
+								</Button>
+							</div>
 							<Input
 								autoFocus
 								placeholder="Type to search…"
@@ -348,13 +406,13 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 				</DialogContent>
 			</Dialog>
 
-			<Dialog open={!!confirmAction} onOpenChange={(o) => !o && !confirmLoading && !confirmSuccess && setConfirmAction(null)}>
+			<Dialog open={!!confirmAction} onOpenChange={(o) => { if (!o && !confirmLoading && !confirmSuccess) { setConfirmAction(null); setConfirmNote(""); } }}>
 				<DialogContent>
 					{confirmLoading ? (
 						<div className="flex flex-col items-center gap-3 py-6">
 							<div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary"/>
 							<p className="text-sm text-muted-foreground">
-								{confirmAction?.kind === "block" ? "Blocking…" : confirmAction?.kind === "unblock" ? "Unblocking…" : "Processing…"}
+								{confirmAction?.kind === "block" ? "Blocking…" : confirmAction?.kind === "unblock" ? "Unblocking…" : confirmAction?.kind === "break" ? "Marking as broken…" : confirmAction?.kind === "unbreak" ? "Repairing…" : "Processing…"}
 							</p>
 						</div>
 					) : confirmSuccess ? (
@@ -363,7 +421,7 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 								<circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>
 							</svg>
 							<p className="text-sm font-medium">
-								{confirmAction?.kind === "block" ? "Blocked successfully" : confirmAction?.kind === "unblock" ? "Unblocked successfully" : "Done"}
+								{confirmAction?.kind === "block" ? "Blocked successfully" : confirmAction?.kind === "unblock" ? "Unblocked successfully" : confirmAction?.kind === "break" ? "Marked as broken" : confirmAction?.kind === "unbreak" ? "Repaired successfully" : "Done"}
 							</p>
 						</div>
 					) : (
@@ -377,10 +435,21 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 										`This will block ${confirmAction.seatId}. Staff will not be able to assign it.`}
 									{confirmAction?.kind === "unblock" &&
 										`This will unblock ${confirmAction.seatId} and make it available.`}
+									{confirmAction?.kind === "break" &&
+										`This will mark ${confirmAction.seatId} as broken. No one will be able to book it.`}
+									{confirmAction?.kind === "unbreak" &&
+										`This will mark ${confirmAction.seatId} as repaired and make it available again.`}
 								</DialogDescription>
 							</DialogHeader>
+							{(confirmAction?.kind === "break" || confirmAction?.kind === "unbreak") && (
+								<Input
+									placeholder="Note (optional)"
+									value={confirmNote}
+									onChange={(e) => setConfirmNote(e.target.value)}
+								/>
+							)}
 							<DialogFooter>
-								<Button variant="outline" onClick={() => setConfirmAction(null)}>Cancel</Button>
+								<Button variant="outline" onClick={() => { setConfirmAction(null); setConfirmNote(""); }}>Cancel</Button>
 								<Button variant="destructive" onClick={applyConfirm}>Confirm</Button>
 							</DialogFooter>
 						</>
