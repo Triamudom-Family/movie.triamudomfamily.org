@@ -8,12 +8,13 @@ export async function GET() {
 
 	const seats = await prisma.seat.findMany({select: {row: true, status: true}});
 
-	const map = new Map<string, { available: number; blocked: number; booked: number }>();
+	const map = new Map<string, { available: number; blocked: number; booked: number; broken: number }>();
 	for (const s of seats) {
-		if (!map.has(s.row)) map.set(s.row, {available: 0, blocked: 0, booked: 0});
+		if (!map.has(s.row)) map.set(s.row, {available: 0, blocked: 0, booked: 0, broken: 0});
 		const entry = map.get(s.row)!;
 		if (s.status === "AVAILABLE") entry.available++;
 		else if (s.status === "BLOCKED") entry.blocked++;
+		else if (s.status === "BROKEN") entry.broken++;
 		else entry.booked++;
 	}
 
