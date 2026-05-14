@@ -12,6 +12,7 @@ enum SeatStatus {
   AVAILABLE
   BOOKED
   BLOCKED
+  BROKEN
 }
 
 enum Role {
