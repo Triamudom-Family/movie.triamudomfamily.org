@@ -364,9 +364,11 @@ export function AdminDashboard() {
 						</span>
 					</div>
 				)}
-				<div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+				<div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
 					<Stat label="Total seats" value={analytics?.summary.total ?? "—"}/>
 					<Stat label="Booked" value={analytics?.summary.booked ?? "—"} accent="red"/>
+					<Stat label="Blocked" value={analytics?.summary.blocked ?? "—"} accent={analytics && analytics.summary.blocked > 0 ? "amber" : "zinc"}/>
+					<Stat label="Broken" value={analytics?.summary.broken ?? "—"} accent={analytics && analytics.summary.broken > 0 ? "amber" : "zinc"}/>
 					<Stat label="Available" value={analytics?.summary.available ?? "—"} accent="green"/>
 					<Stat
 						label="Fill rate"
@@ -374,14 +376,9 @@ export function AdminDashboard() {
 						accent={pctBooked !== null && pctBooked >= 80 ? "red" : pctBooked !== null && pctBooked >= 50 ? "amber" : "green"}
 					/>
 				</div>
-				<div className="grid gap-2 grid-cols-3">
+				<div className="grid gap-2 grid-cols-2">
 					<Stat label="Students registered" value={analytics?.studentsTotal ?? "—"}/>
-					<Stat label="Checked in" value={analytics?.studentsSeated ?? "—"} accent="green"/>
-					<Stat
-						label="Not checked in"
-						value={analytics?.studentsWaiting ?? "—"}
-						accent={analytics && analytics.studentsWaiting > 0 ? "amber" : "green"}
-					/>
+					<Stat label="Not registered" value={analytics?.studentsWaiting ?? "—"} accent={analytics && analytics.studentsWaiting > 0 ? "amber" : "zinc"}/>
 				</div>
 				{analyticsError && (
 					<div className="flex items-center justify-between rounded-md border border-rose-800 bg-rose-950/40 px-4 py-2.5 text-sm text-rose-300">
