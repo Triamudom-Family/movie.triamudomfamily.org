@@ -91,11 +91,6 @@ export function DashboardSettingsButton() {
 						<ToggleRow label="Recent bookings" on={show.recentBookings} onToggle={() => toggleShow("recentBookings")}/>
 						<ToggleRow label="Row overview" on={show.rowOverview} onToggle={() => toggleShow("rowOverview")}/>
 					</div>
-					<p className="mb-2 mt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Stats</p>
-					<div className="space-y-2">
-						<ToggleRow label="Check-in by room" on={show.checkinByRoom} onToggle={() => toggleShow("checkinByRoom")}/>
-						<ToggleRow label="Booking conflicts" on={show.doubleBookingConflicts} onToggle={() => toggleShow("doubleBookingConflicts")}/>
-					</div>
 					<p className="mb-2 mt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Blocks</p>
 					<div className="space-y-2">
 						<ToggleRow label="Section blocks" on={show.sectionBlocks} onToggle={() => toggleShow("sectionBlocks")}/>
