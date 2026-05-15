@@ -166,8 +166,7 @@ export function SeatMap({
 						const isOwned = ownedSet.has(s.id);
 						const clickable =
 							!!onSeatClick &&
-							seatStatus !== "BROKEN" &&
-							(isAdmin || seatStatus === "AVAILABLE" || isOwned);
+							(isAdmin || ((seatStatus === "AVAILABLE" || isOwned) && seatStatus !== "BROKEN"));
 						const fillColor =
 							seatStatus === "AVAILABLE"
 								? TYPE_COLOR[s.type]
