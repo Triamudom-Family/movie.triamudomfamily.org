@@ -16,6 +16,7 @@ import {toast} from "sonner";
 import {ChevronDown, ChevronUp, Lock, LockOpen} from "lucide-react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
 import {Badge} from "@/components/ui/badge";
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter} from "@/components/ui/dialog";
 import {
@@ -95,6 +96,7 @@ export function AdminDashboard() {
 	const [brokenSeats, setBrokenSeats] = useState<BlockedSeat[]>([]);
 	const [breakRow, setBreakRow] = useState("");
 	const [breakSeatNum, setBreakSeatNum] = useState("");
+	const [breakNote, setBreakNote] = useState("");
 	const [breakBusy, setBreakBusy] = useState<string | null>(null);
 	const [blockRow, setBlockRow] = useState("");
 	const [blockSeatNum, setBlockSeatNum] = useState("");
@@ -275,13 +277,14 @@ export function AdminDashboard() {
 		const r = await fetch(`/api/seats/${encodeURIComponent(id)}/break`, {
 			method: "POST",
 			headers: {"Content-Type": "application/json"},
-			body: "{}",
+			body: JSON.stringify({note: breakNote || undefined}),
 		});
 		setBreakBusy(null);
 		if (r.ok) {
 			toast.success(`${id} marked as broken`);
 			setBreakRow("");
 			setBreakSeatNum("");
+			setBreakNote("");
 			fetchBlockedSeats();
 			fetchRowStatuses();
 		} else {
@@ -780,6 +783,15 @@ export function AdminDashboard() {
 								<SelectContent>{(rowSeatsMap[breakRow] ?? []).map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
 							</Select>
 						</div>
+						<div className="flex flex-col gap-1 flex-1 min-w-[160px]">
+							<label className="text-xs text-muted-foreground">Note</label>
+							<Input
+								placeholder="Optional"
+								value={breakNote}
+								onChange={(e) => setBreakNote(e.target.value)}
+								className="h-9"
+							/>
+						</div>
 						<Button variant="destructive" size="sm" disabled={!breakRow || !breakSeatNum || breakBusy !== null} onClick={breakSeat}>
 							Mark broken
 						</Button>
@@ -790,7 +802,10 @@ export function AdminDashboard() {
 						<div className="divide-y divide-zinc-800 rounded-md border border-amber-800/50 overflow-hidden">
 							{brokenSeats.map((s) => (
 								<div key={s.id} className="flex items-center justify-between bg-amber-950/20 px-4 py-2.5">
-									<span className="text-sm font-bold text-amber-400">{s.id}</span>
+									<div className="flex items-center gap-2">
+										<span className="text-sm font-bold text-amber-400">{s.id}</span>
+										{s.note && <span className="text-xs text-muted-foreground">{s.note}</span>}
+									</div>
 									<Button variant="outline" size="sm" disabled={breakBusy === s.id} onClick={() => fixSeat(s.id)}>Mark fixed</Button>
 								</div>
 							))}
