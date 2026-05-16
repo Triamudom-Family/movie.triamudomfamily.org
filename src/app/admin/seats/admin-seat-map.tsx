@@ -15,7 +15,6 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import {Badge} from "@/components/ui/badge";
-import {type SeatType} from "@/lib/seat-layout";
 
 type SeatInfo = {
 	seat: {
@@ -77,7 +76,6 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 	function handleSeatClick(
 		seatId: string,
 		status: "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN",
-		_type: SeatType,
 	) {
 		if (status === "AVAILABLE") {
 			setAssignTarget(seatId);
