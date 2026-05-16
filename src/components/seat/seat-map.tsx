@@ -2,11 +2,11 @@
 
 import {useEffect, useMemo, useRef, useState} from "react";
 import {Armchair, Maximize2, Minimize2} from "lucide-react";
-import {ROW_LABELS, SEAT_LAYOUT, type SeatType} from "@/lib/seat-layout";
+import {ROW_LABELS, SEAT_LAYOUT, type SeatStatusValue, type SeatType} from "@/lib/seat-layout";
 import {getSupabaseClient, SEAT_CHANNEL, SEAT_EVENT} from "@/lib/supabase-client";
 import {cn} from "@/lib/utils";
 
-export type SeatStatusValue = "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN";
+export type {SeatStatusValue};
 export type SeatStatusMap = Record<string, SeatStatusValue>;
 
 export type SeatMapProps = {
@@ -44,6 +44,15 @@ export function SeatMap({
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const containerRef = useRef<HTMLDivElement | null>(null);
 
+	// Merge in fresh server data when the parent passes a new initialStatus,
+	// without dropping seat updates that arrived via realtime/polling. Adjust
+	// during render (React 19 pattern) instead of in an effect.
+	const [lastInitialStatus, setLastInitialStatus] = useState(initialStatus);
+	if (initialStatus !== lastInitialStatus) {
+		setLastInitialStatus(initialStatus);
+		setStatus((prev) => ({...prev, ...initialStatus}));
+	}
+
 	useEffect(() => {
 		const handler = () => setIsFullscreen(!!document.fullscreenElement);
 		document.addEventListener("fullscreenchange", handler);
@@ -58,10 +67,6 @@ export function SeatMap({
 			containerRef.current.requestFullscreen();
 		}
 	};
-
-	useEffect(() => {
-		setStatus((prev) => ({...prev, ...initialStatus}));
-	}, [initialStatus]);
 
 	// Supabase Realtime — instant updates when the broadcast reaches the client
 	useEffect(() => {

@@ -5,7 +5,7 @@ import {toast} from "sonner";
 import {Trash2, X, Check, Pencil} from "lucide-react";
 import {useScanAudio} from "@/lib/use-scan-audio";
 import {QrScanner} from "@/components/scanner/qr-scanner";
-import {SeatMap, type SeatStatusMap} from "@/components/seat/seat-map";
+import {SeatMap, type SeatStatusMap, type SeatStatusValue} from "@/components/seat/seat-map";
 import {Button} from "@/components/ui/button";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -58,14 +58,16 @@ export function ScanWorkflow({
 
 	useEffect(() => {
 		if (countdown === null) return;
-		if (countdown === 0) {
-			setScanned([]);
-			setActiveStudentId(null);
-			setPhase("scanning");
-			setCountdown(null);
-			return;
-		}
-		const t = setTimeout(() => setCountdown((c) => (c !== null ? c - 1 : null)), 1000);
+		const t = setTimeout(() => {
+			if (countdown === 0) {
+				setScanned([]);
+				setActiveStudentId(null);
+				setPhase("scanning");
+				setCountdown(null);
+			} else {
+				setCountdown((c) => (c !== null ? c - 1 : null));
+			}
+		}, countdown === 0 ? 0 : 1000);
 		return () => clearTimeout(t);
 	}, [countdown]);
 
@@ -198,7 +200,7 @@ export function ScanWorkflow({
 
 	async function handleSeatClick(
 		seatId: string,
-		seatStatus: "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN",
+		seatStatus: SeatStatusValue,
 	) {
 		if (!activeStudentId) {
 			toast.info("Select a scanned student first.");
@@ -473,7 +475,7 @@ function SeatingPanel({
 	setActiveStudentId: (id: string) => void;
 	initialStatus: SeatStatusMap;
 	ownedSeatIds: string[];
-	onSeatClick: (seat: string, status: "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN") => void;
+	onSeatClick: (seat: string, status: SeatStatusValue) => void;
 	onFinish: () => void;
 	onDoneNow?: () => void;
 	isAdmin: boolean;

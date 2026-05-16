@@ -1,4 +1,6 @@
-export type SeatBroadcastStatus = "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN";
+import type {SeatStatusValue} from "@/lib/seat-layout";
+
+export type SeatBroadcastStatus = SeatStatusValue;
 
 async function httpBroadcast(
 	messages: {topic: string; event: string; payload: object}[],
