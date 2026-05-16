@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect, useId, useRef, useState, useCallback} from "react";
+import {useEffect, useId, useMemo, useRef, useState, useCallback} from "react";
 
 type FlashType = "success" | "info" | "error";
 const FLASH_COLOR: Record<FlashType, string> = {
@@ -36,7 +36,7 @@ export function QrScanner({onScan, onError, paused, flashSignal}: {
 	const scannerRef = useRef<Html5QrcodeInstance | null>(null);
 	const isScanningRef = useRef(false);
 	const rawId = useId();
-	const elementId = useRef(`qr-scanner-${rawId.replace(/:/g, "")}`);
+	const elementId = useMemo(() => `qr-scanner-${rawId.replace(/:/g, "")}`, [rawId]);
 	const onScanRef = useRef(onScan);
 	const onErrorRef = useRef(onError);
 	const CtorRef = useRef<Html5QrcodeCtor | null>(null);
@@ -74,15 +74,19 @@ export function QrScanner({onScan, onError, paused, flashSignal}: {
 		return () => window.removeEventListener("unhandledrejection", handleRejection);
 	}, []);
 
-	// Restore auto-start after hydration
+	// Restore auto-start after hydration. The setStarted lands in a setTimeout
+	// callback so it isn't a synchronous effect-body setState.
 	useEffect(() => {
-		if (sessionStorage.getItem("qr-cam-started") === "1") setStarted(true);
+		const t = setTimeout(() => {
+			if (sessionStorage.getItem("qr-cam-started") === "1") setStarted(true);
+		}, 0);
+		return () => clearTimeout(t);
 	}, []);
 
 	const stopScanner = useCallback(async () => {
 		// Null the srcObject before stop() so the browser doesn't fire an
 		// AbortError for a play() promise that's still pending.
-		const container = document.getElementById(elementId.current);
+		const container = document.getElementById(elementId);
 		const video = container?.querySelector("video");
 		if (video) {
 			video.pause();
@@ -96,12 +100,12 @@ export function QrScanner({onScan, onError, paused, flashSignal}: {
 			try { inst.clear(); } catch { /* ignore */ }
 		}
 		scannerRef.current = null;
-	}, []);
+	}, [elementId]);
 
 	const startScanner = useCallback(async (camera: string | {facingMode: string}) => {
 		const Ctor = CtorRef.current;
 		if (!Ctor) return;
-		const instance = new Ctor(elementId.current, {verbose: false});
+		const instance = new Ctor(elementId, {verbose: false});
 		scannerRef.current = instance;
 		try {
 			await instance.start(
@@ -119,7 +123,7 @@ export function QrScanner({onScan, onError, paused, flashSignal}: {
 			setStartError(msg);
 			onErrorRef.current?.(msg);
 		}
-	}, []);
+	}, [elementId]);
 
 	// Load the library; signal when ready
 	useEffect(() => {
@@ -138,7 +142,7 @@ export function QrScanner({onScan, onError, paused, flashSignal}: {
 	// Start the camera only once both the library is loaded and the user has started
 	useEffect(() => {
 		if (!started || !libReady) return;
-		const id = elementId.current;
+		const id = elementId;
 
 		const style = document.createElement("style");
 		style.textContent = `
@@ -174,7 +178,7 @@ export function QrScanner({onScan, onError, paused, flashSignal}: {
 			document.head.removeChild(style);
 			stopScanner();
 		};
-	}, [started, libReady, startScanner, stopScanner]);
+	}, [started, libReady, startScanner, stopScanner, elementId]);
 
 	async function handleTapStart() {
 		setStartError(null);
@@ -204,7 +208,7 @@ export function QrScanner({onScan, onError, paused, flashSignal}: {
 	return (
 		<div className="relative w-full max-w-sm" style={{opacity: paused ? 0.4 : 1}}>
 			<div
-				id={elementId.current}
+				id={elementId}
 				className="w-full rounded-lg overflow-hidden border bg-black"
 				style={{aspectRatio: "1 / 1"}}
 			/>
