@@ -1,6 +1,4 @@
 import type {Metadata} from "next";
-import {Geist, Geist_Mono} from "next/font/google";
-
 import {IBM_Plex_Sans_Thai as IBMPlexSansThai, JetBrains_Mono} from "next/font/google";
 import "./globals.css";
 import {Toaster} from "@/components/ui/sonner";

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {useEffect, useState} from "react";
 import {CountdownTimer} from "@/components/countdown-timer";
 import type {EventSettings} from "@/server/settings";
@@ -52,10 +53,12 @@ function ImageSlot({src, alt, hint}: {src: string; alt: string; hint: string}) {
 
 			{/* Actual image */}
 			{!failed && (
-				<img
+				<Image
 					src={src}
 					alt={alt}
-					className="absolute inset-0 h-full w-full object-cover"
+					fill
+					sizes="(max-width: 768px) 50vw, 33vw"
+					className="object-cover"
 					onError={() => setFailed(true)}
 				/>
 			)}

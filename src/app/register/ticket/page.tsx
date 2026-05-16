@@ -1,4 +1,5 @@
 import {redirect} from "next/navigation";
+import Image from "next/image";
 import QRCode from "qrcode";
 import {getSession} from "@/server/session";
 import {prisma} from "@/server/prisma";
@@ -86,12 +87,13 @@ export default async function TicketPage() {
 						</div>
 						<div className="flex justify-center">
 							<div className="rounded-xl border border-zinc-700 bg-[#18181b] p-2.5 shadow-inner">
-								<img
+								<Image
 									src={qrDataUrl}
 									alt="Your ticket QR code"
 									className="block rounded-lg"
 									width={200}
 									height={200}
+									unoptimized
 								/>
 							</div>
 						</div>
