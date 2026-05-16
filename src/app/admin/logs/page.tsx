@@ -129,18 +129,24 @@ export default function LogsPage() {
 		to: "",
 	});
 
-	async function load() {
+	async function fetchLogs(): Promise<Log[] | null> {
 		const params = new URLSearchParams();
 		if (filters.action) params.set("action", filters.action);
 		if (filters.row) params.set("row", filters.row);
 		if (filters.from) params.set("from", filters.from);
 		if (filters.to) params.set("to", filters.to);
 		const res = await fetch(`/api/logs?${params.toString()}`);
-		if (res.ok) setLogs((await res.json()).logs);
+		if (!res.ok) return null;
+		return (await res.json()).logs;
+	}
+
+	async function load() {
+		const next = await fetchLogs();
+		if (next) setLogs(next);
 	}
 
 	useEffect(() => {
-		load();
+		fetchLogs().then((next) => { if (next) setLogs(next); });
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 

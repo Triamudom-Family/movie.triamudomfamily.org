@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import {useEffect, useState} from "react";
+import {useState, useSyncExternalStore} from "react";
 import {CountdownTimer} from "@/components/countdown-timer";
 import type {EventSettings} from "@/server/settings";
 
@@ -113,10 +113,14 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 		{label: "VENUE", value: venue ?? "Paragon Cineplex"},
 	];
 
-	const [showCountdown, setShowCountdown] = useState(false);
-	useEffect(() => {
-		setShowCountdown(!!eventAt && new Date(eventAt).getTime() > Date.now());
-	}, [eventAt]);
+	// Defer the countdown until after hydration so the server (which has no
+	// Date.now() reference for the user's clock) and client first paint match.
+	// Date.now() lives inside getSnapshot to satisfy the purity rule.
+	const showCountdown = useSyncExternalStore(
+		() => () => {},
+		() => !!eventAt && new Date(eventAt).getTime() > Date.now(),
+		() => false,
+	);
 
 	return (
 		<div className="bg-[#050509] text-white">

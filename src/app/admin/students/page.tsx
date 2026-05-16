@@ -56,25 +56,37 @@ type Student = {
 
 export default function StudentsPage() {
 	const [students, setStudents] = useState<Student[]>([]);
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [filters, setFilters] = useState({q: "", class: "", seat: ""});
 	const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
 	const [deleting, setDeleting] = useState(false);
 	const isMount = useRef(true);
 
-	async function load() {
-		setLoading(true);
+	async function fetchStudents(): Promise<Student[] | null> {
 		const params = new URLSearchParams();
 		if (filters.q) params.set("q", filters.q);
 		if (filters.class) params.set("class", filters.class);
 		if (filters.seat) params.set("seat", filters.seat);
 		const res = await fetch(`/api/students?${params.toString()}`);
-		if (res.ok) setStudents((await res.json()).students);
-		setLoading(false);
+		if (!res.ok) return null;
+		return (await res.json()).students;
+	}
+
+	async function load() {
+		setLoading(true);
+		try {
+			const next = await fetchStudents();
+			if (next) setStudents(next);
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	useEffect(() => {
-		load();
+		fetchStudents().then((next) => {
+			if (next) setStudents(next);
+			setLoading(false);
+		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 

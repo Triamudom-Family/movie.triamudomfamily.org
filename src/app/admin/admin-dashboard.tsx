@@ -158,23 +158,25 @@ export function AdminDashboard() {
 	}, []);
 
 	const refreshAll = useCallback(() => {
-		fetch("/api/analytics")
+		const analyticsP = fetch("/api/analytics")
 			.then((r) => {
 				if (r.ok) return r.json().then((d) => { setAnalytics(d); setAnalyticsError(false); });
 				setAnalyticsError(true);
 			})
 			.catch(() => setAnalyticsError(true));
-		fetchRowStatuses();
-		fetchSectionStatuses();
-		fetchBlockedSeats();
-		fetchRecentActivity();
-		setLastRefreshed(new Date());
+		Promise.all([
+			analyticsP,
+			fetchRowStatuses(),
+			fetchSectionStatuses(),
+			fetchBlockedSeats(),
+			fetchRecentActivity(),
+		]).finally(() => setLastRefreshed(new Date()));
 	}, [fetchRowStatuses, fetchSectionStatuses, fetchBlockedSeats, fetchRecentActivity]);
 
 	useEffect(() => {
-		refreshAll();
+		const initial = setTimeout(refreshAll, 0);
 		const id = setInterval(refreshAll, 30_000);
-		return () => clearInterval(id);
+		return () => { clearTimeout(initial); clearInterval(id); };
 	}, [refreshAll]);
 
 	useEffect(() => {

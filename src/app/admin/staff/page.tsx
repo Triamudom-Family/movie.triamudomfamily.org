@@ -71,19 +71,23 @@ export default function StaffManagementPage() {
 	const [multiInput, setMultiInput] = useState("");
 	const [multiRole, setMultiRole] = useState<"STAFF" | "ADMIN">("STAFF");
 
-	async function load() {
+	async function fetchStaff(): Promise<Staff[] | null> {
 		const res = await fetch("/api/staff");
-		if (res.ok) {
-			const data = await res.json();
-			setStaff((data.staff as Staff[]).sort((a, b) => {
-				if (a.role !== b.role) return a.role === "ADMIN" ? -1 : 1;
-				return a.name.localeCompare(b.name);
-			}));
-		}
+		if (!res.ok) return null;
+		const data = await res.json();
+		return (data.staff as Staff[]).sort((a, b) => {
+			if (a.role !== b.role) return a.role === "ADMIN" ? -1 : 1;
+			return a.name.localeCompare(b.name);
+		});
+	}
+
+	async function load() {
+		const next = await fetchStaff();
+		if (next) setStaff(next);
 	}
 
 	useEffect(() => {
-		load();
+		fetchStaff().then((next) => { if (next) setStaff(next); });
 	}, []);
 
 	function openDialog() {
