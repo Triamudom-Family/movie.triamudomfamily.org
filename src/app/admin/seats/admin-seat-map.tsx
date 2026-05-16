@@ -2,7 +2,7 @@
 
 import {useState} from "react";
 import {toast} from "sonner";
-import {SeatMap, type SeatStatusMap} from "@/components/seat/seat-map";
+import {SeatMap, type SeatStatusMap, type SeatStatusValue} from "@/components/seat/seat-map";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {Badge} from "@/components/ui/badge";
 type SeatInfo = {
 	seat: {
 		id: string;
-		status: "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN";
+		status: SeatStatusValue;
 		note: string | null;
 		bookedBy: string | null;
 		bookedAt: string | null;
@@ -75,7 +75,7 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 
 	function handleSeatClick(
 		seatId: string,
-		status: "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN",
+		status: SeatStatusValue,
 	) {
 		if (status === "AVAILABLE") {
 			setAssignTarget(seatId);

@@ -1,5 +1,6 @@
 export type SeatType = "normal" | "honeymoon" | "privilege_plus" | "privilege_normal" | "vip" | "premium" | "balcony";
 export type SeatSection = "left" | "right" | "center";
+export type SeatStatusValue = "AVAILABLE" | "BOOKED" | "BLOCKED" | "BROKEN";
 
 export type SeatDef = {
 	id: string;
