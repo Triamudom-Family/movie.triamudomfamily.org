@@ -27,7 +27,7 @@ export function GoogleSignInButton({
 		<button
 			type="button"
 			disabled={pending}
-			className="flex w-full items-center justify-center gap-3 rounded-lg border border-zinc-700 bg-zinc-900/60 px-4 py-3 text-sm font-semibold text-zinc-200 shadow-sm transition-colors hover:bg-zinc-800 hover:border-zinc-600 hover:text-white disabled:opacity-50"
+			className="flex w-full items-center justify-center gap-3 rounded-[9px] bg-white px-4 py-2.5 text-sm font-medium text-zinc-900 transition-colors transition-transform hover:bg-zinc-100 active:scale-[0.985] disabled:opacity-60"
 			onClick={() =>
 				start(async () => {
 					if (signOutFirst) {
