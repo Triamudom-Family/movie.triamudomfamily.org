@@ -53,8 +53,8 @@ export function RegisterForm({email}: {email: string}) {
 	}
 
 	const inputClass =
-		"w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-pink-500/40 focus:border-pink-500 transition shadow-sm";
-	const labelClass = "block text-xs font-semibold text-zinc-400 mb-1.5";
+		"w-full rounded-[9px] border-[0.5px] border-white/[0.10] bg-[#0a0a12] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none transition-colors focus:border-[rgba(240,53,127,0.7)]";
+	const labelClass = "block text-xs font-medium text-zinc-400 mb-1.5";
 
 	return (
 		<form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
@@ -81,7 +81,7 @@ export function RegisterForm({email}: {email: string}) {
 			<div>
 				<label htmlFor="class" className={labelClass}>
 					ห้อง{" "}
-					<span className="font-normal text-zinc-500">เช่น 070 หรือ 946</span>
+					<span className="font-normal text-zinc-600">เช่น 070 หรือ 946</span>
 				</label>
 				<input
 					id="class"
@@ -108,7 +108,7 @@ export function RegisterForm({email}: {email: string}) {
 				<label htmlFor="studentId" className={labelClass}>รหัสนักเรียน</label>
 				<input
 					id="studentId"
-					className={`${inputClass} cursor-not-allowed opacity-50`}
+					className={`${inputClass} cursor-not-allowed text-zinc-500`}
 					required
 					disabled
 					value={form.studentId}
@@ -119,7 +119,7 @@ export function RegisterForm({email}: {email: string}) {
 				<button
 					type="submit"
 					disabled={pending}
-					className="w-full rounded-lg bg-pink-500 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-pink-900/50 transition-colors hover:bg-pink-400 disabled:opacity-60"
+					className="w-full rounded-[9px] bg-[#f0357f] px-4 py-2.5 text-sm font-medium text-white transition-colors transition-transform hover:bg-[#d92970] active:scale-[0.985] disabled:opacity-60"
 				>
 					{pending ? (
 						<span className="flex items-center justify-center gap-2">

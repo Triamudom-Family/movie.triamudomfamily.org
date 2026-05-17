@@ -25,8 +25,9 @@ export function LoginForm() {
 		});
 	}
 
-	const inputClass = "w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-pink-500/40 focus:border-pink-500 transition shadow-sm";
-	const labelClass = "block text-xs font-semibold text-zinc-400 mb-1.5";
+	const inputClass =
+		"w-full rounded-[9px] border-[0.5px] border-white/[0.10] bg-[#0a0a12] px-3 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none transition-colors focus:border-[rgba(240,53,127,0.7)]";
+	const labelClass = "block text-xs font-medium text-zinc-400 mb-1.5";
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
@@ -56,7 +57,7 @@ export function LoginForm() {
 			<button
 				type="submit"
 				disabled={pending}
-				className="w-full px-4 py-2.5 rounded-lg bg-pink-500 text-white font-semibold text-sm hover:bg-pink-400 disabled:opacity-60 transition-colors shadow-md shadow-pink-900/50"
+				className="w-full rounded-[9px] bg-[#f0357f] px-4 py-2.5 text-sm font-medium text-white transition-colors transition-transform hover:bg-[#d92970] active:scale-[0.985] disabled:opacity-60"
 			>
 				{pending ? "Signing in…" : "Sign in"}
 			</button>
