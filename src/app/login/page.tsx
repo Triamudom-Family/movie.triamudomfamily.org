@@ -43,17 +43,17 @@ export default async function LoginPage() {
 
 			<div className="flex flex-1 items-center justify-center px-4 py-8">
 				<div className="w-[380px] max-w-[calc(100vw-32px)] rounded-[14px] border-[0.5px] border-white/[0.08] bg-[#14141c] p-7">
-					<div className="mb-5">
-						<div className="mb-4 flex h-11 w-11 items-center justify-center rounded-[11px] bg-[#f0357f] text-white">
-							<LockIcon/>
-						</div>
-						<h1 className="text-[1.4rem] font-semibold tracking-tight text-white">Staff &amp; Admin Login</h1>
+					<div className="mb-5 text-center">
+						{/*<div className="mb-4 mx-auto flex h-11 w-11 items-center justify-center rounded-[11px] bg-[#f0357f] text-white">*/}
+						{/*	<LockIcon/>*/}
+						{/*</div>*/}
+						<h1 className="text-[1.4rem] font-semibold tracking-tight text-white">Staff Login</h1>
 						<p className="mt-1.5 text-sm text-zinc-400">
-							Students should use{" "}
-							<Link href="/register" className="text-zinc-200 underline underline-offset-4 hover:text-white transition-colors">
-								/register
-							</Link>{" "}
-							with their school Google account.
+							{/*Students should use{" "}*/}
+							{/*<Link href="/register" className="text-zinc-200 underline underline-offset-4 hover:text-white transition-colors">*/}
+							{/*	/register*/}
+							{/*</Link>{" "}*/}
+							{/*with their school Google account.*/}
 						</p>
 					</div>
 					<LoginForm/>

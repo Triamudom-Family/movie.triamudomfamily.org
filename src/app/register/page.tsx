@@ -79,7 +79,7 @@ export default async function RegisterPage() {
 		return (
 			<Shell
 				title="ลงทะเบียนนักเรียน"
-				description={`เข้าสู่ระบบด้วยบัญชี Google ของโรงเรียน (${STUDENT_DOMAIN}) เพื่อลงทะเบียนชมภาพยนตร์`}
+				description={`ลงทะเบียนด้วยบัญชี Google ของโรงเรียน (${STUDENT_DOMAIN}) เพื่อลงทะเบียน`}
 			>
 				<GoogleSignInButton/>
 			</Shell>
