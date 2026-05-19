@@ -79,8 +79,28 @@ const GALLERY = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19].map(
    LandingPage
 ───────────────────────────────────────────────────────────────────────────── */
 export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
-	const {eventAt} = eventSettings;
+	const {eventAt, eventEndTime, venue} = eventSettings;
 	const countdownIso = eventAt ?? EVENT_DATETIME_ISO;
+
+	let dateDisplay = EVENT_DATE_THAI;
+	let timeDisplay = EVENT_TIME;
+	if (eventAt) {
+		const d = new Date(eventAt);
+		dateDisplay = d.toLocaleDateString("th-TH", {
+			timeZone: "Asia/Bangkok",
+			day: "numeric",
+			month: "long",
+			year: "numeric",
+		});
+		const start = d.toLocaleTimeString("th-TH", {
+			timeZone: "Asia/Bangkok",
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		});
+		timeDisplay = eventEndTime ? `${start} – ${eventEndTime} น.` : `${start} น.`;
+	}
+	const venueDisplay = venue ?? VENUE_NAME;
 
 	// Defer the countdown until after hydration so server and client first paint match.
 	const showCountdown = useSyncExternalStore(
@@ -217,9 +237,9 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 						<dl className="mt-1 flex flex-col">
 							<SpecRow label="Date">
 								<>
-									{EVENT_DATE_THAI}
+									{dateDisplay}
 									<SpecDot/>
-									{EVENT_TIME}
+									{timeDisplay}
 								</>
 								{/*<>*/}
 								{/*	{EVENT_DATE_EN}*/}
@@ -228,7 +248,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 								{/*</>*/}
 							</SpecRow>
 							<SpecRow label="Venue">
-								{VENUE_NAME}
+								{venueDisplay}
 								{/*{VENUE_SUB}*/}
 							</SpecRow>
 						</dl>
