@@ -2,27 +2,34 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import {useState, useSyncExternalStore} from "react";
-import {CountdownTimer} from "@/components/countdown-timer";
+import {useEffect, useState, useSyncExternalStore} from "react";
 import type {EventSettings} from "@/server/settings";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Film-grain texture (SVG fractal-noise as a data-URI)
+   Fixed event copy — admin override comes later (separate ticket).
 ───────────────────────────────────────────────────────────────────────────── */
+const EVENT_DATE_THAI    = "25 พฤษภาคม 2569";
+const EVENT_DATE_EN      = "Monday, 25 May 2026";
+const EVENT_TIME         = "15:30 น.";
+const EVENT_DOORS        = "Doors open 15:00";
+const EVENT_DATETIME_ISO = "2026-05-25T15:30:00+07:00";
+const VENUE_NAME         = "Siam Pavalai · ชั้น 5 Paragon Cineplex";
+const VENUE_SUB          = "Paragon Cineplex · ชั้น 5 สยามพารากอน";
+
+/* Film-grain texture (SVG fractal-noise as a data-URI) */
 const GRAIN =
 	"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ImageSlot — shows a styled placeholder until the given src loads.
-   ─ Poster:  drop /public/poster.jpg
-   ─ Gallery: drop /public/gallery/1.jpg … 6.jpg  (or more)
+   ─ Hero:    drop /public/hero.jpg
+   ─ Gallery: drop /public/gallery/1.jpg … 9.jpg
 ───────────────────────────────────────────────────────────────────────────── */
 function ImageSlot({src, alt, hint}: {src: string; alt: string; hint: string}) {
 	const [failed, setFailed] = useState(false);
 
 	return (
 		<div className="relative h-full w-full overflow-hidden">
-			{/* Placeholder — always rendered as the base layer */}
 			<div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0c0c14]">
 				<div
 					className="absolute inset-0 opacity-[0.025]"
@@ -32,7 +39,6 @@ function ImageSlot({src, alt, hint}: {src: string; alt: string; hint: string}) {
 						backgroundSize: "8px 8px",
 					}}
 				/>
-				{/* Icon */}
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -51,13 +57,12 @@ function ImageSlot({src, alt, hint}: {src: string; alt: string; hint: string}) {
 				<span className="relative text-[8px] text-zinc-800">{hint}</span>
 			</div>
 
-			{/* Actual image */}
 			{!failed && (
 				<Image
 					src={src}
 					alt={alt}
 					fill
-					sizes="(max-width: 768px) 50vw, 33vw"
+					sizes="(max-width: 768px) 100vw, 50vw"
 					className="object-cover"
 					onError={() => setFailed(true)}
 				/>
@@ -66,72 +71,34 @@ function ImageSlot({src, alt, hint}: {src: string; alt: string; hint: string}) {
 	);
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Gallery items — add more objects to extend the grid.
-   Drop the files in /public/gallery/ and they appear automatically.
-───────────────────────────────────────────────────────────────────────────── */
-const GALLERY = [
-	{src: "/gallery/1.jpg",  alt: "Photo 1"},
-	{src: "/gallery/2.jpg",  alt: "Photo 2"},
-	{src: "/gallery/3.jpg",  alt: "Photo 3"},
-	{src: "/gallery/4.jpg",  alt: "Photo 4"},
-	{src: "/gallery/5.jpg",  alt: "Photo 5"},
-	{src: "/gallery/6.jpg",  alt: "Photo 6"},
-	{src: "/gallery/7.jpg",  alt: "Photo 7"},
-	{src: "/gallery/8.jpg",  alt: "Photo 8"},
-	{src: "/gallery/9.jpg",  alt: "Photo 9"},
-];
+const GALLERY = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19].map(
+	(n) => ({src: `/${n}.webp`, alt: `Photo ${n}`}),
+);
 
 /* ─────────────────────────────────────────────────────────────────────────────
    LandingPage
 ───────────────────────────────────────────────────────────────────────────── */
 export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
-	const {eventAt, eventEndTime, venue} = eventSettings;
+	const {eventAt} = eventSettings;
+	const countdownIso = eventAt ?? EVENT_DATETIME_ISO;
 
-	// Derive display values from eventAt, falling back to hardcoded defaults
-	let dateDisplay = "พฤษภาคม 2568";
-	let timeDisplay = "18:00 – 21:00";
-	if (eventAt) {
-		const d = new Date(eventAt);
-		dateDisplay = d.toLocaleDateString("th-TH", {
-			timeZone: "Asia/Bangkok",
-			month: "long",
-			year: "numeric",
-		});
-		const start = d.toLocaleTimeString("th-TH", {
-			timeZone: "Asia/Bangkok",
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: false,
-		});
-		timeDisplay = eventEndTime ? `${start} – ${eventEndTime}` : start;
-	}
-
-	const details = [
-		{label: "DATE",  value: dateDisplay},
-		{label: "TIME",  value: timeDisplay},
-		{label: "VENUE", value: venue ?? "Paragon Cineplex"},
-	];
-
-	// Defer the countdown until after hydration so the server (which has no
-	// Date.now() reference for the user's clock) and client first paint match.
-	// Date.now() lives inside getSnapshot to satisfy the purity rule.
+	// Defer the countdown until after hydration so server and client first paint match.
 	const showCountdown = useSyncExternalStore(
 		() => () => {},
-		() => !!eventAt && new Date(eventAt).getTime() > Date.now(),
+		() => new Date(countdownIso).getTime() > Date.now(),
 		() => false,
 	);
 
 	return (
-		<div className="bg-[#050509] text-white">
+		<div className="bg-[#07060a] text-white">
 
-			{/* ── Fixed atmospheric overlays (cover entire page) ──────────── */}
+			{/* ── Fixed atmospheric overlays ──────────────────────────────── */}
 			<div
 				className="pointer-events-none fixed inset-0 z-10"
 				style={{
 					background: [
-						"radial-gradient(ellipse 80% 50% at 20% 0%, rgba(120,40,80,0.18) 0%, transparent 60%)",
-						"radial-gradient(ellipse 60% 40% at 80% 100%, rgba(40,20,80,0.12) 0%, transparent 60%)",
+						"radial-gradient(ellipse 80% 50% at 20% 0%, rgba(236,72,153,0.18) 0%, transparent 60%)",
+						"radial-gradient(ellipse 60% 40% at 80% 0%, rgba(168,85,247,0.10) 0%, transparent 60%)",
 					].join(", "),
 				}}
 				aria-hidden
@@ -145,7 +112,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 				className="pointer-events-none fixed inset-0 z-10"
 				style={{
 					background:
-						"radial-gradient(ellipse 110% 110% at 50% 50%, transparent 45%, rgba(0,0,0,0.65) 100%)",
+						"radial-gradient(ellipse 110% 110% at 50% 50%, transparent 45%, rgba(7,6,10,0.7) 100%)",
 				}}
 				aria-hidden
 			/>
@@ -157,141 +124,137 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 
 				{/* Header */}
 				<header className="flex items-center justify-between px-6 py-4">
-					<span className="font-mono text-[10px] font-semibold tracking-[0.3em] text-zinc-600 uppercase select-none">
-						TU89
+					<span className="font-mono text-[10px] tracking-[0.5em] text-zinc-400 uppercase select-none">
+						<span className="text-white">TU</span>·<span className="text-white">89</span> · MOVIE
 					</span>
 					<Link
 						href="/register"
-						className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-zinc-300 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
+						className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-zinc-300 backdrop-blur-sm transition-all hover:border-pink-400/30 hover:bg-pink-500/10 hover:text-white"
 					>
-						ลงทะเบียน
+						ลงทะเบียน →
 					</Link>
 				</header>
 
 				{/* Hero content */}
-				<main className="mx-auto flex flex-1 w-full max-w-5xl flex-col items-center gap-10 px-6 pb-20 pt-6 md:flex-row md:items-start md:gap-16 md:pb-24 md:pt-12">
+				<main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-10 px-6 py-14 md:grid-cols-2 md:gap-[50px] md:py-20">
 
-					{/* Poster */}
+					{/* Group photo */}
 					<div
-						className="w-full max-w-[240px] shrink-0 sm:max-w-[280px] md:max-w-[320px]"
-						style={{aspectRatio: "2 / 3"}}
+						className="relative w-full overflow-hidden rounded-[2px]"
+						style={{
+							aspectRatio: "3 / 2",
+							boxShadow: [
+								"0 0 70px rgba(236,72,153,0.28)",
+								"0 30px 60px -20px rgba(0,0,0,0.8)",
+								"0 0 0 0.5px rgba(255,255,255,0.08)",
+							].join(", "),
+						}}
 					>
-						<div
-							className="h-full w-full rounded-[2px] overflow-hidden"
-							style={{
-								boxShadow: [
-									"0 0 0 1px rgba(255,255,255,0.05)",
-									"0 0 60px rgba(244,63,94,0.20)",
-									"0 0 120px rgba(244,63,94,0.08)",
-									"0 30px 80px rgba(0,0,0,0.95)",
-								].join(", "),
-							}}
+						<ImageSlot src="/1.webp" alt="TU89 group photo" hint="Add /public/1.webp"/>
+						<span
+							className="pointer-events-none absolute bottom-3 left-3 font-mono text-[9px] tracking-[0.3em] uppercase"
+							style={{color: "rgba(255,255,255,0.55)"}}
 						>
-							<ImageSlot
-								src="/poster.jpg"
-								alt="Movie poster"
-								hint="Add /public/poster.jpg"
-							/>
-						</div>
+							TU·88
+						</span>
+						<span
+							className="pointer-events-none absolute right-3 bottom-3 font-mono text-[9px] tracking-[0.3em] uppercase"
+							style={{color: "rgba(255,255,255,0.55)"}}
+						>
+							2025
+						</span>
 					</div>
 
 					{/* Info */}
-					<div className="flex w-full flex-col items-center gap-5 text-center md:items-start md:pt-2 md:text-left">
+					<div className="flex w-full max-w-[500px] flex-col gap-5">
 
-						{/* Now showing */}
-						<div className="flex items-center gap-2">
-							<span
-								className="h-1.5 w-1.5 rounded-full bg-rose-500"
-								style={{boxShadow: "0 0 6px 2px rgba(244,63,94,0.7)"}}
-							/>
-							<span className="text-[10px] font-semibold tracking-[0.45em] text-zinc-400 uppercase">
-								Now Showing
-							</span>
-						</div>
+						{/*/!* Now booking pill *!/*/}
+						{/*<div className="flex items-center gap-2">*/}
+						{/*	<span*/}
+						{/*		className="h-1.5 w-1.5 rounded-full bg-pink-500"*/}
+						{/*		style={{boxShadow: "0 0 6px 2px rgba(236,72,153,0.7)"}}*/}
+						{/*	/>*/}
+						{/*	<span className="font-mono text-[10px] tracking-[0.45em] text-zinc-400 uppercase">*/}
+						{/*		Now booking*/}
+						{/*	</span>*/}
+						{/*</div>*/}
 
-						{/* School credit */}
-						<div className="-mt-2 flex flex-col gap-0.5">
-							<span className="text-[9px] tracking-[0.35em] text-zinc-600 uppercase">
-								Triamudom Suksa School
-							</span>
-							<span className="text-[9px] tracking-[0.25em] text-zinc-700 uppercase">
-								Class of &#39;89 Presents
-							</span>
-						</div>
+						{/*/!* Credit *!/*/}
+						{/*<span className="-mt-2 font-mono text-[10px] tracking-[0.4em] text-zinc-500 uppercase">*/}
+						{/*	Triam Udom Suksa · Class of 89*/}
+						{/*</span>*/}
 
 						{/* Title */}
-						<div className="-mt-1 flex flex-col gap-1">
-							<h1
-								className="text-[clamp(5rem,18vw,8rem)] font-black leading-none tracking-tighter text-white"
-								style={{
-									textShadow: [
-										"0 0 60px rgba(244,63,94,0.5)",
-										"0 0 120px rgba(244,63,94,0.2)",
-									].join(", "),
-								}}
-							>
-								TU89
-							</h1>
-							<p className="text-xl font-semibold tracking-[0.18em] text-zinc-300 uppercase sm:text-2xl">
-								First Movie
-							</p>
-							<p className="mt-0.5 text-sm tracking-widest text-zinc-500 uppercase">
-								: Where It All Begins
-							</p>
-						</div>
+						<h1
+							className="-mt-1 text-[72px] font-medium leading-[0.88] tracking-[-0.05em] text-white"
+							style={{textShadow: "0 0 60px rgba(236,72,153,0.45)"}}
+						>
+							The First Movie<br/>
+							<em className="not-italic text-pink-500">Where it all begins.</em>
+						</h1>
 
-						{/* Description */}
-						<p className="max-w-sm text-sm leading-relaxed text-zinc-400">
-							เริ่มต้นชีวิตในเตรียมอุดมในโรงหนังที่ใหญ่ที่สุดในประเทศ{" "}
-							<span className="text-zinc-300">@ Paragon Cineplex</span>{" "}
-							แล้วมาดูหนัง &ldquo;....&rdquo; ทำความรู้จักเพื่อนใหม่กัน !
+						{/* Subtitle */}
+						<p className="font-mono text-[11px] font-bold tracking-[0.35em] text-white/70 uppercase">
+							First meet · First memory · #TU89
 						</p>
 
-						{/* Divider */}
-						<div className="w-full max-w-xs">
-							<div className="h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent md:from-zinc-700/80 md:to-transparent" />
-						</div>
+						{/* Description */}
+						{/*<p className="text-[14px] leading-[1.75] text-white/70">*/}
+						{/*	เริ่มต้นชีวิตในเตรียมอุดมในโรงหนังที่ใหญ่ที่สุดในประเทศ{" "}*/}
+						{/*	<strong className="font-medium text-white">*/}
+						{/*		@ Siam Pavalai — Paragon Cineplex*/}
+						{/*	</strong>{" "}*/}
+						{/*	แล้วมาดูหนัง <span className="text-pink-400">&ldquo;....&rdquo;</span>{" "}*/}
+						{/*	ทำความรู้จักเพื่อนใหม่กัน !*/}
+						{/*</p>*/}
 
-						{/* Details */}
-						<dl className="grid grid-cols-2 gap-x-10 gap-y-4">
-							{details.map(({label, value}) => (
-								<div key={label} className="flex flex-col gap-0.5">
-									<dt className="text-[9px] tracking-[0.4em] text-zinc-600 uppercase">{label}</dt>
-									<dd className="text-sm font-medium text-zinc-200">{value}</dd>
-								</div>
-							))}
+						{/* Spec sheet */}
+						<dl className="mt-1 flex flex-col">
+							<SpecRow label="Date">
+								<>
+									{EVENT_DATE_THAI}
+									<SpecDot/>
+									{EVENT_TIME}
+								</>
+								{/*<>*/}
+								{/*	{EVENT_DATE_EN}*/}
+								{/*	<SpecDot/>*/}
+								{/*	{EVENT_DOORS}*/}
+								{/*</>*/}
+							</SpecRow>
+							<SpecRow label="Venue">
+								{VENUE_NAME}
+								{/*{VENUE_SUB}*/}
+							</SpecRow>
 						</dl>
 
 						{/* Countdown */}
-						{showCountdown && (
-							<div className="flex flex-col gap-1.5">
-								<span className="text-[9px] tracking-[0.4em] text-zinc-600 uppercase">
-									เริ่มใน
-								</span>
-								<CountdownTimer targetIso={eventAt!}/>
-							</div>
-						)}
+						{showCountdown && <HeroCountdown targetIso={countdownIso}/>}
 
-						{/* CTA */}
-						<Link
-							href="/register"
-							className="mt-1 rounded-full bg-rose-500 px-8 py-3.5 text-sm font-semibold tracking-wide text-white transition-all hover:bg-rose-400 active:scale-[0.97]"
-							style={{
-								boxShadow: "0 0 28px rgba(244,63,94,0.45), 0 4px 16px rgba(0,0,0,0.5)",
-							}}
-						>
-							จองที่นั่งเลย →
-						</Link>
-
-						<p className="text-[10px] tracking-widest text-zinc-600">
-							First Meet, First Memory &nbsp;·&nbsp; #TU89
-						</p>
+						{/* CTA row */}
+						<div className="mt-[10px] flex items-center gap-[14px]">
+							<Link
+								href="/register"
+								className="rounded-full bg-pink-500 px-[30px] py-[15px] text-sm font-semibold tracking-wide text-white transition-all hover:bg-pink-600 active:scale-[0.97]"
+								style={{
+									boxShadow:
+										"0 0 40px rgba(236,72,153,0.5), 0 8px 24px -6px rgba(236,72,153,0.55)",
+								}}
+							>
+								ลงทะเบียน →
+							</Link>
+							<span
+								className="font-mono text-[10px] tracking-[0.4em] uppercase"
+								style={{color: "rgba(236,72,153,0.85)"}}
+							>
+								{/*#TU89*/}
+							</span>
+						</div>
 					</div>
 				</main>
 
 				{/* Scroll indicator */}
-				<div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1.5 text-zinc-700">
-					<span className="text-[8px] tracking-[0.4em] uppercase">Scroll</span>
+				<div className="absolute bottom-6 left-1/2 -translate-x-1/2">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						width="14"
@@ -302,7 +265,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 						strokeWidth="1.5"
 						strokeLinecap="round"
 						strokeLinejoin="round"
-						className="animate-bounce"
+						className="animate-bounce text-white/30"
 					>
 						<polyline points="6 9 12 15 18 9"/>
 					</svg>
@@ -312,29 +275,25 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 			{/* ════════════════════════════════════════════════════════════════
 			    GALLERY SECTION
 			════════════════════════════════════════════════════════════════ */}
-			<section className="relative z-20 mx-auto max-w-5xl px-6 pb-24 pt-16">
+			<section className="relative z-20 mx-auto max-w-5xl px-6 pt-16 pb-24">
 
-				{/* Section heading */}
 				<div className="mb-10 flex flex-col items-center gap-3 text-center">
 					<div className="flex w-full items-center gap-4">
 						<div className="h-px flex-1 bg-zinc-800"/>
 						<div className="flex flex-col items-center gap-1">
-							<span className="text-[9px] tracking-[0.5em] text-zinc-600 uppercase">
-								From Last Year
+							<span className="font-mono text-[9px] tracking-[0.5em] text-pink-400 uppercase">
+								From last year
 							</span>
 							<h2 className="text-lg font-bold tracking-wide text-zinc-300">
-								ความทรงจำ · 2567
+								ความทรงจำ · TU88
 							</h2>
 						</div>
 						<div className="h-px flex-1 bg-zinc-800"/>
 					</div>
 				</div>
 
-				{/* Photo grid */}
-				{/* To add photos: drop files into /public/gallery/ named 1.jpg, 2.jpg … */}
-				{/* To add more photos: duplicate an object in the GALLERY array above  */}
 				<div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3">
-					{GALLERY.map(({src, alt}, i) => (
+					{GALLERY.map(({src, alt}) => (
 						<div
 							key={src}
 							className="overflow-hidden rounded-[2px]"
@@ -343,20 +302,100 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 								boxShadow: "0 4px 24px rgba(0,0,0,0.6)",
 							}}
 						>
-							<ImageSlot
-								src={src}
-								alt={alt}
-								hint={`/gallery/${i + 1}.jpg`}
-							/>
+							<ImageSlot src={src} alt={alt} hint={src}/>
 						</div>
 					))}
 				</div>
 			</section>
 
-			{/* ── Footer ────────────────────────────────────────────────────── */}
+			{/* Footer */}
 			<footer className="relative z-20 px-6 py-6 text-center font-mono text-[9px] tracking-[0.3em] text-zinc-800 uppercase">
 				Movie Register · Triamudom Suksa School
 			</footer>
+		</div>
+	);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Spec sheet row — hairline borders top and bottom.
+───────────────────────────────────────────────────────────────────────────── */
+function SpecRow({
+	label,
+	children,
+}: {
+	label: string;
+	children: React.ReactNode | [React.ReactNode, React.ReactNode];
+}) {
+	const arr = Array.isArray(children) ? children : [children, null];
+	const [primary, secondary] = arr;
+
+	return (
+		<div className="flex items-start gap-4 border-t border-b border-white/5 py-3 -mt-px">
+			<dt className="w-[110px] shrink-0 pt-0.5 font-mono text-[9px] font-bold tracking-[0.4em] text-white/70 uppercase">
+				{label}
+			</dt>
+			<dd className="flex flex-col">
+				<span className="text-[14px] text-white">{primary}</span>
+				{secondary && (
+					<span className="mt-0.5 text-[12px] text-zinc-400">{secondary}</span>
+				)}
+			</dd>
+		</div>
+	);
+}
+
+function SpecDot() {
+	return (
+		<span style={{color: "rgba(255,255,255,0.25)", margin: "0 10px"}}>·</span>
+	);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Hero countdown — 4-cell grid.
+───────────────────────────────────────────────────────────────────────────── */
+function HeroCountdown({targetIso}: {targetIso: string}) {
+	const [diff, setDiff] = useState<number | null>(null);
+
+	useEffect(() => {
+		const target = new Date(targetIso).getTime();
+		const tick = () => setDiff(Math.max(0, target - Date.now()));
+		tick();
+		const id = setInterval(tick, 1000);
+		return () => clearInterval(id);
+	}, [targetIso]);
+
+	if (diff === null) return null;
+
+	const days  = Math.floor(diff / 86_400_000);
+	const hours = Math.floor((diff % 86_400_000) / 3_600_000);
+	const mins  = Math.floor((diff % 3_600_000)  / 60_000);
+	const secs  = Math.floor((diff % 60_000)     / 1_000);
+
+	return (
+		<div className="grid grid-cols-4 gap-2">
+			<CountCell value={days}  label="Days"/>
+			<CountCell value={hours} label="Hours"/>
+			<CountCell value={mins}  label="Min"/>
+			<CountCell value={secs}  label="Sec"/>
+		</div>
+	);
+}
+
+function CountCell({value, label}: {value: number; label: string}) {
+	return (
+		<div
+			className="flex flex-col items-center gap-1.5 rounded-[2px] px-2 py-3"
+			style={{
+				background: "rgba(255,255,255,0.02)",
+				boxShadow: "inset 0 0 0 0.5px rgba(255,255,255,0.06)",
+			}}
+		>
+			<span className="text-[26px] font-medium leading-none tabular-nums text-white">
+				{String(value).padStart(2, "0")}
+			</span>
+			<span className="font-mono text-[8px] tracking-[0.3em] text-zinc-500 uppercase">
+				{label}
+			</span>
 		</div>
 	);
 }
