@@ -123,10 +123,15 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 			<section className="relative z-20 flex min-h-svh flex-col">
 
 				{/* Header */}
-				<header className="flex items-center justify-between px-6 py-4">
-					<span className="font-mono text-[10px] tracking-[0.5em] text-zinc-400 uppercase select-none">
-						<span className="text-white">TU</span>·<span className="text-white">89</span> · MOVIE
-					</span>
+				<header className="flex items-center justify-between px-8 py-6">
+					<Image
+						src="/logo.webp"
+						alt="TU89 Movie"
+						width={412}
+						height={191}
+						priority
+						className="h-7 w-auto select-none"
+					/>
 					<Link
 						href="/register"
 						className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold text-zinc-300 backdrop-blur-sm transition-all hover:border-pink-400/30 hover:bg-pink-500/10 hover:text-white"
@@ -309,8 +314,30 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 			</section>
 
 			{/* Footer */}
-			<footer className="relative z-20 px-6 py-6 text-center font-mono text-[9px] tracking-[0.3em] text-zinc-800 uppercase">
-				Movie Register · Triamudom Suksa School
+			<footer className="relative z-20 border-t border-white/5 px-8 py-4 text-center text-xs">
+				<div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+					<a
+						href="https://github.com/arckanop/movie.triamudomfamily.org"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="inline-flex items-center gap-1.5 font-medium text-zinc-500 transition-colors hover:text-zinc-200"
+					>
+						{/* eslint-disable-next-line @next/next/no-img-element */}
+						<img src="https://cdn.simpleicons.org/github/71717a" alt="GitHub" className="h-3.5 w-3.5"/>
+						Arckanop
+					</a>
+					<span className="text-zinc-700">·</span>
+					<a
+						href="https://github.com/arckanop/movie.triamudomfamily.org/blob/master/LICENSE.md"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-zinc-500 transition-colors hover:text-pink-400"
+					>
+						AGPL-3.0
+					</a>
+					<span className="text-zinc-700">·</span>
+					<span className="text-zinc-500">Movie Registration v1.1.0</span>
+				</div>
 			</footer>
 		</div>
 	);

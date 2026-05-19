@@ -15,8 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Triamudom Family Movie Booking",
-	description: "Registration for Triamudom Family Movie Booking.",
+	title: "Triamudom Family Movie Registration",
+	description: "Registration for Triamudom Family Movie Registration.",
 };
 
 export default function RootLayout({
