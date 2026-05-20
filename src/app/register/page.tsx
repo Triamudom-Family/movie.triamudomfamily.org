@@ -11,7 +11,7 @@ const ANUPHAN_FONT = {fontFamily: "var(--font-anuphan)"} as const;
 const STUDENT_DOMAIN =
 	process.env.STUDENT_EMAIL_DOMAIN ?? "@student.triamudom.ac.th";
 
-function Topbar() {
+function Topbar({showStaffLogin = false}: {showStaffLogin?: boolean}) {
 	return (
 		<header className="flex items-center justify-between px-7 py-4">
 			<Link
@@ -23,9 +23,14 @@ function Topbar() {
 				</svg>
 				<span>กลับหน้าหลัก</span>
 			</Link>
-			<div className="hidden font-mono text-[10px] uppercase tracking-[0.5em] text-white/50 sm:block">
-				<b className="font-medium text-white">TU</b>·<b className="font-medium text-white">89</b>
-			</div>
+			{showStaffLogin && (
+				<Link
+					href="/login"
+					className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+				>
+					Staff login →
+				</Link>
+			)}
 		</header>
 	);
 }
@@ -91,9 +96,9 @@ function Card({
 export default async function RegisterPage() {
 	const session = await getSession();
 
-	const layout = (cardContents: React.ReactNode) => (
+	const layout = (cardContents: React.ReactNode, {showStaffLogin = false}: {showStaffLogin?: boolean} = {}) => (
 		<div className="flex flex-1 flex-col">
-			<Topbar/>
+			<Topbar showStaffLogin={showStaffLogin}/>
 			<main className="flex flex-1 items-center justify-center px-4 py-8">
 				{cardContents}
 			</main>
@@ -108,6 +113,7 @@ export default async function RegisterPage() {
 			>
 				<GoogleSignInButton/>
 			</Card>,
+			{showStaffLogin: true},
 		);
 	}
 
@@ -121,6 +127,7 @@ export default async function RegisterPage() {
 				{email && <AccountChip email={email}/>}
 				<GoogleSignInButton signOutFirst label="เข้าสู่ระบบด้วยบัญชีที่ถูกต้อง"/>
 			</Card>,
+			{showStaffLogin: true},
 		);
 	}
 
