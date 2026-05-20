@@ -1,5 +1,5 @@
 import type {Metadata} from "next";
-import {IBM_Plex_Sans_Thai as IBMPlexSansThai, JetBrains_Mono} from "next/font/google";
+import {IBM_Plex_Sans_Thai as IBMPlexSansThai, JetBrains_Mono, Anuphan} from "next/font/google";
 import "./globals.css";
 import {Toaster} from "@/components/ui/sonner";
 
@@ -14,6 +14,12 @@ const jetbrainsMono = JetBrains_Mono({
 	subsets: ["latin"],
 });
 
+const anuphan = Anuphan({
+	variable: "--font-anuphan",
+	subsets: ["thai", "latin"],
+	weight: ["100", "200", "300", "400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
 	title: "Triamudom Family Movie Registration",
 	description: "Registration for Triamudom Family Movie Registration.",
@@ -23,7 +29,7 @@ export default function RootLayout({
 	                                   children,
                                    }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" className={`${ibmPlexSansThai.variable} ${jetbrainsMono.variable} h-full antialiased dark`}>
+		<html lang="en" className={`${ibmPlexSansThai.variable} ${jetbrainsMono.variable} ${anuphan.variable} h-full antialiased dark`}>
 		<body className="min-h-full flex flex-col bg-background text-foreground font-sans">
 		{children}
 		<Toaster/>

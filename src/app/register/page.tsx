@@ -4,70 +4,86 @@ import {getSession} from "@/server/session";
 import {prisma} from "@/server/prisma";
 import {GoogleSignInButton} from "./google-sign-in-button";
 import {RegisterForm} from "./register-form";
+import {SignOutButton} from "./sign-out-button";
+
+const ANUPHAN_FONT = {fontFamily: "var(--font-anuphan)"} as const;
 
 const STUDENT_DOMAIN =
 	process.env.STUDENT_EMAIL_DOMAIN ?? "@student.triamudom.ac.th";
 
-function FilmIcon() {
+function Topbar() {
 	return (
-		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-			<rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
-			<line x1="7" y1="2" x2="7" y2="22"/>
-			<line x1="17" y1="2" x2="17" y2="22"/>
-			<line x1="2" y1="12" x2="22" y2="12"/>
-			<line x1="2" y1="7" x2="7" y2="7"/>
-			<line x1="2" y1="17" x2="7" y2="17"/>
-			<line x1="17" y1="17" x2="22" y2="17"/>
-			<line x1="17" y1="7" x2="22" y2="7"/>
-		</svg>
+		<header className="flex items-center justify-between px-7 py-4">
+			<Link
+				href="/"
+				className="inline-flex items-center gap-1.5 text-[13px] text-white/60 transition-colors hover:text-white/90"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+					<path d="M15 18l-6-6 6-6"/>
+				</svg>
+				<span>กลับหน้าหลัก</span>
+			</Link>
+			<div className="hidden font-mono text-[10px] uppercase tracking-[0.5em] text-white/50 sm:block">
+				<b className="font-medium text-white">TU</b>·<b className="font-medium text-white">89</b>
+			</div>
+		</header>
 	);
 }
 
-function Shell({title, description, email, children, wide}: {
+function AccountChip({email, showSignOut = false}: {email: string; showSignOut?: boolean}) {
+	return (
+		<div className="mb-[22px]">
+			<div className="mb-1.5 text-[12px] font-medium text-white/75">บัญชี</div>
+			<div className="flex flex-col gap-3 rounded-[10px] border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 sm:flex-row sm:items-center sm:gap-2 sm:py-2.5">
+				<div className="min-w-0 flex-1 break-all font-mono text-[15px] text-white/90 sm:truncate sm:break-normal">
+					{email}
+				</div>
+				{showSignOut && (
+					<div className="self-center sm:self-auto">
+						<SignOutButton/>
+					</div>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function Card({
+	eyebrow,
+	title,
+	subtitle,
+	children,
+}: {
+	eyebrow?: string;
 	title: string;
-	description: string;
-	email?: string;
+	subtitle: string;
 	children: React.ReactNode;
-	wide?: boolean;
 }) {
 	return (
-		<div className="flex flex-1 flex-col">
-			<nav className="flex items-center justify-between px-6 py-4">
-				<Link
-					href="/"
-					className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-					กลับหน้าหลัก
-				</Link>
-				<Link
-					href="/login"
-					className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-				>
-					Staff login →
-				</Link>
-			</nav>
-
-			<div className="flex flex-1 items-center justify-center px-4 py-8">
+		<div
+			className="w-[500px] max-w-[calc(100vw-32px)] rounded-[14px] border-[0.5px] border-white/10 bg-[rgba(20,20,28,0.55)] p-[30px] backdrop-blur-[20px] sm:p-[30px]"
+			style={{
+				boxShadow:
+					"0 0 50px rgba(236,72,153,0.10), 0 20px 40px -10px rgba(0,0,0,0.5)",
+				WebkitBackdropFilter: "blur(20px)",
+			}}
+		>
+			{eyebrow && (
 				<div
-					className={`${wide ? "w-[460px]" : "w-[380px]"} max-w-[calc(100vw-32px)] rounded-[14px] border-[0.5px] border-white/[0.08] bg-[#14141c] p-7`}
+					className="mb-3 text-[12px] font-medium text-pink-400/85"
+					style={ANUPHAN_FONT}
 				>
-					<div className="mb-5">
-						{/*<div className="mb-4 flex h-11 w-11 items-center justify-center rounded-[11px] bg-[#f0357f] text-white">*/}
-						{/*	<FilmIcon/>*/}
-						{/*</div>*/}
-						<h1 className="text-[1.4rem] font-semibold tracking-tight text-white">{title}</h1>
-						<p className="mt-1.5 text-sm text-zinc-400">{description}</p>
-						{email && (
-							<div className="mt-3 flex items-center gap-2 rounded-lg border-[0.5px] border-white/[0.08] bg-[#0a0a12] px-3 py-2">
-								<span className="shrink-0 text-xs text-zinc-500">บัญชี</span>
-								<span className="break-all font-mono text-xs text-zinc-200">{email}</span>
-							</div>
-						)}
-					</div>
-					{children}
+					{eyebrow}
 				</div>
-			</div>
+			)}
+			<h1
+				className="mb-4 text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-white"
+				style={ANUPHAN_FONT}
+			>
+				{title}
+			</h1>
+			<p className="mb-3 text-[13px] leading-[1.5] text-white/60">{subtitle}</p>
+			{children}
 		</div>
 	);
 }
@@ -75,27 +91,36 @@ function Shell({title, description, email, children, wide}: {
 export default async function RegisterPage() {
 	const session = await getSession();
 
+	const layout = (cardContents: React.ReactNode) => (
+		<div className="flex flex-1 flex-col">
+			<Topbar/>
+			<main className="flex flex-1 items-center justify-center px-4 py-8">
+				{cardContents}
+			</main>
+		</div>
+	);
+
 	if (!session) {
-		return (
-			<Shell
+		return layout(
+			<Card
 				title="ลงทะเบียนนักเรียน"
-				description={`ลงทะเบียนด้วยบัญชี Google ของโรงเรียน (${STUDENT_DOMAIN}) เพื่อลงทะเบียน`}
+				subtitle={`ลงทะเบียนด้วยบัญชี Google ของโรงเรียน (${STUDENT_DOMAIN}) เพื่อลงทะเบียน`}
 			>
 				<GoogleSignInButton/>
-			</Shell>
+			</Card>,
 		);
 	}
 
 	const email = session.user.email;
 	if (!email || !email.endsWith(STUDENT_DOMAIN)) {
-		return (
-			<Shell
+		return layout(
+			<Card
 				title="บัญชีไม่ถูกต้อง"
-				description={`การลงทะเบียนจำกัดเฉพาะบัญชี ${STUDENT_DOMAIN} เท่านั้น`}
-				email={email ?? undefined}
+				subtitle={`การลงทะเบียนจำกัดเฉพาะบัญชี ${STUDENT_DOMAIN} เท่านั้น`}
 			>
+				{email && <AccountChip email={email}/>}
 				<GoogleSignInButton signOutFirst label="เข้าสู่ระบบด้วยบัญชีที่ถูกต้อง"/>
-			</Shell>
+			</Card>,
 		);
 	}
 
@@ -104,14 +129,14 @@ export default async function RegisterPage() {
 	});
 	if (student) redirect("/register/ticket");
 
-	return (
-		<Shell
-			title="ลงทะเบียนไปดูหนัง"
-			description="กรอกข้อมูลด้านล่างเพื่อรับ E-ticket ของคุณ"
-			email={email}
-			wide
+	return layout(
+		<Card
+			eyebrow="ลงทะเบียน · STEP 2 / 2"
+			title="ลงทะเบียน"
+			subtitle="กรอกข้อมูลด้านล่างเพื่อลงทะเบียนและรับ E-ticket"
 		>
+			<AccountChip email={email} showSignOut/>
 			<RegisterForm email={email}/>
-		</Shell>
+		</Card>,
 	);
 }
