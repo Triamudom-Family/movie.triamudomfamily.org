@@ -337,7 +337,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 			<footer className="relative z-20 border-t border-white/5 px-8 py-4 text-center text-xs">
 				<div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
 					<a
-						href="https://github.com/arckanop/movie.triamudomfamily.org"
+						href="https://github.com/Triamudom-Family/movie.triamudomfamily.org"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="inline-flex items-center gap-1.5 font-medium text-zinc-500 transition-colors hover:text-zinc-200"
@@ -348,7 +348,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 					</a>
 					<span className="text-zinc-700">·</span>
 					<a
-						href="https://github.com/arckanop/movie.triamudomfamily.org/blob/master/LICENSE.md"
+						href="https://github.com/Triamudom-Family/movie.triamudomfamily.org?tab=AGPL-3.0-1-ov-file"
 						target="_blank"
 						rel="noopener noreferrer"
 						className="text-zinc-500 transition-colors hover:text-pink-400"
