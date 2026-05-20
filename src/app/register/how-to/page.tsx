@@ -4,23 +4,23 @@ import {QrCode, ScanLine, ArmchairIcon, Smartphone, ChevronLeft} from "lucide-re
 const STEPS = [
 	{
 		icon: Smartphone,
-		title: "พกโทรศัพท์มาด้วย",
-		body: "ในวันฉายหนัง เปิดเว็บไซต์นี้บนโทรศัพท์ของคุณ ตั๋ว QR อยู่ที่หน้า /register/ticket",
+		title: "พกโทรศัพท์มาในวันฉายหนัง",
+		body: "เปิดเว็บไซต์และเตรียม E-ticket ของคุณ โดยให้เลือกเข้าแถวตามแถวเดี่ยว หรือกลุ่ม (หากมาหลายคน)",
 	},
 	{
 		icon: QrCode,
-		title: "แสดง QR ของคุณ",
-		body: "ที่ทางเข้า ยกหน้าจอขึ้นให้เจ้าหน้าที่เห็น QR ของคุณอย่างชัดเจน",
+		title: "แสดง QR Code ใน E-Ticket ของคุณ",
+		body: "ที่บริเวณลงทะเบียนให้เตรียมเปิด E-ticket และให้ Staff ทำการสแกน QR Code (หากมาหลายคนให้ Staff ทำการสแกนพร้อมกัน)",
 	},
 	{
 		icon: ScanLine,
-		title: "เจ้าหน้าที่จะสแกน",
-		body: "เจ้าหน้าที่จะสแกน QR และกำหนดที่นั่งให้คุณ หน้าจอจะแสดงหมายเลขที่นั่งของคุณ",
+		title: "Staff จะทำการสแกน QR Code และให้ท่านเลือกที่นั่ง",
+		body: "หากมาเป็นกลุ่ม Staff สามารถเลือกที่นั่งติดกันให้ได้ (หากเข้าแถวเป็นกลุ่ม)",
 	},
 	{
 		icon: ArmchairIcon,
 		title: "หาที่นั่งของคุณ",
-		body: "เดินเข้าไปในห้องและหาที่นั่งตามหมายเลขที่ได้รับ สนุกกับการชมหนัง!",
+		body: "เข้าไปในโรงหนังและหาที่นั่งตามหมายเลขที่ได้รับ",
 	},
 ];
 
@@ -57,7 +57,7 @@ export default function HowToPage() {
 								</svg>
 							</div>
 							<h1 className="text-2xl font-bold text-white">ลงทะเบียนสำเร็จ!</h1>
-							<p className="mt-1.5 text-sm text-zinc-400">นี่คือสิ่งที่ต้องทำในวันฉายหนัง</p>
+							{/*<p className="mt-1.5 text-sm text-zinc-400">นี่คือสิ่งที่ต้องทำในวันฉายหนัง</p>*/}
 						</div>
 
 						<div className="space-y-2.5">
