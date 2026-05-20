@@ -5,16 +5,11 @@ import Image from "next/image";
 import {useEffect, useState, useSyncExternalStore} from "react";
 import type {EventSettings} from "@/server/settings";
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Fixed event copy — admin override comes later (separate ticket).
-───────────────────────────────────────────────────────────────────────────── */
-const EVENT_DATE_THAI    = "25 พฤษภาคม 2569";
-const EVENT_DATE_EN      = "Monday, 25 May 2026";
-const EVENT_TIME         = "15:30 น.";
-const EVENT_DOORS        = "Doors open 15:00";
-const EVENT_DATETIME_ISO = "2026-05-25T15:30:00+07:00";
-const VENUE_NAME         = "Siam Pavalai · ชั้น 5 Paragon Cineplex";
-const VENUE_SUB          = "Paragon Cineplex · ชั้น 5 สยามพารากอน";
+/* DB is the source of truth — uncomment to re-enable hardcoded fallbacks. */
+// const EVENT_DATE_THAI    = "25 พฤษภาคม 2569";
+// const EVENT_TIME         = "15:30 น.";
+// const EVENT_DATETIME_ISO = "2026-05-25T15:30:00+07:00";
+// const VENUE_NAME         = "Siam Pavalai · ชั้น 5 Paragon Cineplex";
 
 /* Film-grain texture (SVG fractal-noise as a data-URI) */
 const GRAIN =
@@ -80,10 +75,10 @@ const GALLERY = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19].map(
 ───────────────────────────────────────────────────────────────────────────── */
 export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 	const {eventAt, eventEndTime, venue} = eventSettings;
-	const countdownIso = eventAt ?? EVENT_DATETIME_ISO;
+	const countdownIso = eventAt; // ?? EVENT_DATETIME_ISO;
 
-	let dateDisplay = EVENT_DATE_THAI;
-	let timeDisplay = EVENT_TIME;
+	let dateDisplay = ""; // EVENT_DATE_THAI;
+	let timeDisplay = ""; // EVENT_TIME;
 	if (eventAt) {
 		const d = new Date(eventAt);
 		dateDisplay = d.toLocaleDateString("th-TH", {
@@ -100,12 +95,12 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 		});
 		timeDisplay = eventEndTime ? `${start} – ${eventEndTime} น.` : `${start} น.`;
 	}
-	const venueDisplay = venue ?? VENUE_NAME;
+	const venueDisplay = venue ?? ""; // ?? VENUE_NAME;
 
 	// Defer the countdown until after hydration so server and client first paint match.
 	const showCountdown = useSyncExternalStore(
 		() => () => {},
-		() => new Date(countdownIso).getTime() > Date.now(),
+		() => (countdownIso ? new Date(countdownIso).getTime() > Date.now() : false),
 		() => false,
 	);
 
@@ -254,7 +249,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 						</dl>
 
 						{/* Countdown */}
-						{showCountdown && <HeroCountdown targetIso={countdownIso}/>}
+						{showCountdown && countdownIso && <HeroCountdown targetIso={countdownIso}/>}
 
 						{/* CTA row */}
 						<div className="mt-[10px] flex items-center gap-[14px]">
