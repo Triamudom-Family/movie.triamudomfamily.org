@@ -1,8 +1,11 @@
 import {prisma} from "@/server/prisma";
+import {getCurrentEventId} from "@/server/event";
 import type {SeatStatusMap} from "./seat-map";
 
 export async function loadSeatStatuses(): Promise<SeatStatusMap> {
+	const eventId = await getCurrentEventId();
 	const seats = await prisma.seat.findMany({
+		where: {eventId},
 		select: {id: true, status: true},
 	});
 	const map: SeatStatusMap = {};

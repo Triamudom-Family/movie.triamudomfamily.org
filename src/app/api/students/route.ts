@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/server/prisma";
 import {requireUser} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 export async function GET(req: Request) {
 	const me = await requireUser(["ADMIN"]);
@@ -12,9 +13,11 @@ export async function GET(req: Request) {
 	const q = searchParams.get("q")?.trim() ?? "";
 	const cls = searchParams.get("class")?.trim() ?? "";
 	const seat = searchParams.get("seat") ?? ""; // "booked" | "unbooked" | ""
+	const eventId = await getCurrentEventId();
 
 	const students = await prisma.student.findMany({
 		where: {
+			eventId,
 			...(q
 				? {
 						OR: [

@@ -3,11 +3,22 @@ import {SEAT_LAYOUT} from "../src/lib/seat-layout";
 
 const prisma = new PrismaClient();
 
+const EVENT_YEAR = Number(process.env.SEED_EVENT_YEAR ?? 89);
+const EVENT_TITLE = process.env.SEED_EVENT_TITLE ?? `Triamudom Family Movie ${EVENT_YEAR}`;
+const EVENT_VENUE = process.env.SEED_EVENT_VENUE ?? "Siam Pavalai · Paragon Cineplex";
+
 async function main() {
-	console.log("Seeding seats...");
+	console.log(`Seeding event year ${EVENT_YEAR}...`);
+	const event = await prisma.event.upsert({
+		where: {year: EVENT_YEAR},
+		update: {title: EVENT_TITLE, venue: EVENT_VENUE},
+		create: {year: EVENT_YEAR, title: EVENT_TITLE, venue: EVENT_VENUE},
+	});
+
+	console.log(`Seeding seats for event ${EVENT_YEAR}...`);
 	for (const seat of SEAT_LAYOUT.seats) {
 		await prisma.seat.upsert({
-			where: {id: seat.id},
+			where: {eventId_id: {eventId: event.id, id: seat.id}},
 			update: {
 				row: seat.row,
 				number: seat.number,
@@ -16,6 +27,7 @@ async function main() {
 			},
 			create: {
 				id: seat.id,
+				eventId: event.id,
 				row: seat.row,
 				number: seat.number,
 				section: seat.section,

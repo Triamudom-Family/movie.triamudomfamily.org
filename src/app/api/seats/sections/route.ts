@@ -1,12 +1,14 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/server/prisma";
 import {requireUser} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 export async function GET() {
 	const auth = await requireUser(["ADMIN"]);
 	if (!auth) return NextResponse.json({error: "Unauthorized"}, {status: 401});
 
-	const seats = await prisma.seat.findMany({select: {section: true, status: true}});
+	const eventId = await getCurrentEventId();
+	const seats = await prisma.seat.findMany({where: {eventId}, select: {section: true, status: true}});
 
 	const map = new Map<string, {available: number; blocked: number; booked: number; broken: number}>();
 	for (const s of seats) {

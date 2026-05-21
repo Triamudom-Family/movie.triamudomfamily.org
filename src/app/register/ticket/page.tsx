@@ -3,13 +3,15 @@ import Image from "next/image";
 import QRCode from "qrcode";
 import {getSession} from "@/server/session";
 import {prisma} from "@/server/prisma";
+import {getCurrentEventId} from "@/server/event";
 import {TicketSignOutButton} from "./ticket-sign-out-button";
 
 export default async function TicketPage() {
 	const session = await getSession();
 	if (!session) redirect("/register");
+	const eventId = await getCurrentEventId();
 	const student = await prisma.student.findUnique({
-		where: {userId: session.user.id},
+		where: {eventId_userId: {eventId, userId: session.user.id}},
 		include: {seat: true},
 	});
 	if (!student) redirect("/register");

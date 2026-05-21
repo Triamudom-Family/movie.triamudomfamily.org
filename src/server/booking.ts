@@ -1,5 +1,6 @@
 import {Prisma} from "@prisma/client";
 import {prisma} from "./prisma";
+import {getCurrentEventId} from "./event";
 import {broadcastSeatUpdate} from "./realtime";
 
 export type BookSeatInput = {
@@ -16,10 +17,11 @@ export type BookSeatResult =
 
 export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 	const {seatId, studentId, performedBy, isAdmin, note} = input;
+	const eventId = await getCurrentEventId();
 
 	try {
 		const result = await prisma.$transaction(async (tx) => {
-			const seat = await tx.seat.findUnique({where: {id: seatId}});
+			const seat = await tx.seat.findUnique({where: {eventId_id: {eventId, id: seatId}}});
 			if (!seat) throw new Error("SEAT_NOT_FOUND");
 
 			if (seat.status === "BROKEN") throw new Error("SEAT_BROKEN");
@@ -44,7 +46,7 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 			// Free the student's previous seat if it differs
 			if (previousSeatId && previousSeatId !== seatId) {
 				await tx.seat.update({
-					where: {id: previousSeatId},
+					where: {eventId_id: {eventId, id: previousSeatId}},
 					data: {
 						status: "AVAILABLE",
 						bookedBy: null,
@@ -53,6 +55,7 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 				});
 				await tx.bookingLog.create({
 					data: {
+						eventId,
 						seatId: previousSeatId,
 						studentId: student.id,
 						action: "CANCELLED",
@@ -65,7 +68,7 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 			// If overriding, log the previous occupant
 			if (overrode) {
 				const previousOccupant = await tx.student.findUnique({
-					where: {seatId},
+					where: {eventId_seatId: {eventId, seatId}},
 				});
 				if (previousOccupant && previousOccupant.id !== student.id) {
 					await tx.student.update({
@@ -74,6 +77,7 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 					});
 					await tx.bookingLog.create({
 						data: {
+							eventId,
 							seatId,
 							studentId: previousOccupant.id,
 							action: "OVERRIDDEN",
@@ -85,7 +89,7 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 			}
 
 			await tx.seat.update({
-				where: {id: seatId},
+				where: {eventId_id: {eventId, id: seatId}},
 				data: {
 					status: "BOOKED",
 					bookedBy: performedBy,
@@ -100,6 +104,7 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 
 			await tx.bookingLog.create({
 				data: {
+					eventId,
 					seatId,
 					studentId: student.id,
 					action: "BOOKED",
@@ -153,12 +158,13 @@ export async function cancelBooking(
 	performedBy: string,
 	note?: string,
 ) {
+	const eventId = await getCurrentEventId();
 	const result = await prisma.$transaction(async (tx) => {
-		const seat = await tx.seat.findUnique({where: {id: seatId}});
+		const seat = await tx.seat.findUnique({where: {eventId_id: {eventId, id: seatId}}});
 		if (!seat) throw new Error("SEAT_NOT_FOUND");
-		const student = await tx.student.findUnique({where: {seatId}});
+		const student = await tx.student.findUnique({where: {eventId_seatId: {eventId, seatId}}});
 		await tx.seat.update({
-			where: {id: seatId},
+			where: {eventId_id: {eventId, id: seatId}},
 			data: {status: "AVAILABLE", bookedBy: null, bookedAt: null},
 		});
 		if (student) {
@@ -169,6 +175,7 @@ export async function cancelBooking(
 		}
 		await tx.bookingLog.create({
 			data: {
+				eventId,
 				seatId,
 				studentId: student?.id,
 				action: "CANCELLED",
@@ -187,8 +194,9 @@ export async function setRowBlocked(
 	blocked: boolean,
 	note?: string,
 ): Promise<{ count: number }> {
+	const eventId = await getCurrentEventId();
 	const seats = await prisma.seat.findMany({
-		where: {row, status: blocked ? "AVAILABLE" : "BLOCKED"},
+		where: {eventId, row, status: blocked ? "AVAILABLE" : "BLOCKED"},
 		select: {id: true},
 	});
 	if (seats.length === 0) return {count: 0};
@@ -196,11 +204,12 @@ export async function setRowBlocked(
 	const newStatus = blocked ? "BLOCKED" : "AVAILABLE";
 	await prisma.$transaction([
 		prisma.seat.updateMany({
-			where: {id: {in: ids}},
+			where: {eventId, id: {in: ids}},
 			data: {status: newStatus, bookedBy: null, bookedAt: null},
 		}),
 		prisma.bookingLog.createMany({
 			data: ids.map((seatId) => ({
+				eventId,
 				seatId,
 				action: blocked ? "BLOCKED" : "UNBLOCKED",
 				performedBy,
@@ -218,8 +227,9 @@ export async function setSectionBlocked(
 	blocked: boolean,
 	note?: string,
 ): Promise<{ count: number }> {
+	const eventId = await getCurrentEventId();
 	const seats = await prisma.seat.findMany({
-		where: {section, status: blocked ? "AVAILABLE" : "BLOCKED"},
+		where: {eventId, section, status: blocked ? "AVAILABLE" : "BLOCKED"},
 		select: {id: true},
 	});
 	if (seats.length === 0) return {count: 0};
@@ -227,11 +237,12 @@ export async function setSectionBlocked(
 	const newStatus = blocked ? "BLOCKED" : "AVAILABLE";
 	await prisma.$transaction([
 		prisma.seat.updateMany({
-			where: {id: {in: ids}},
+			where: {eventId, id: {in: ids}},
 			data: {status: newStatus, bookedBy: null, bookedAt: null},
 		}),
 		prisma.bookingLog.createMany({
 			data: ids.map((seatId) => ({
+				eventId,
 				seatId,
 				action: blocked ? "BLOCKED" : "UNBLOCKED",
 				performedBy,
@@ -249,8 +260,9 @@ export async function setSeatTypeBlocked(
 	blocked: boolean,
 	note?: string,
 ): Promise<{ count: number }> {
+	const eventId = await getCurrentEventId();
 	const seats = await prisma.seat.findMany({
-		where: {type, status: blocked ? "AVAILABLE" : "BLOCKED"},
+		where: {eventId, type, status: blocked ? "AVAILABLE" : "BLOCKED"},
 		select: {id: true},
 	});
 	if (seats.length === 0) return {count: 0};
@@ -258,11 +270,12 @@ export async function setSeatTypeBlocked(
 	const newStatus = blocked ? "BLOCKED" : "AVAILABLE";
 	await prisma.$transaction([
 		prisma.seat.updateMany({
-			where: {id: {in: ids}},
+			where: {eventId, id: {in: ids}},
 			data: {status: newStatus, bookedBy: null, bookedAt: null},
 		}),
 		prisma.bookingLog.createMany({
 			data: ids.map((seatId) => ({
+				eventId,
 				seatId,
 				action: blocked ? "BLOCKED" : "UNBLOCKED",
 				performedBy,
@@ -280,12 +293,13 @@ export async function setSeatBroken(
 	broken: boolean,
 	note?: string,
 ) {
+	const eventId = await getCurrentEventId();
 	await prisma.$transaction(async (tx) => {
-		const seat = await tx.seat.findUnique({where: {id: seatId}});
+		const seat = await tx.seat.findUnique({where: {eventId_id: {eventId, id: seatId}}});
 		if (!seat) throw new Error("SEAT_NOT_FOUND");
 		if (broken && seat.status === "BOOKED") throw new Error("SEAT_BOOKED");
 		await tx.seat.update({
-			where: {id: seatId},
+			where: {eventId_id: {eventId, id: seatId}},
 			data: {
 				status: broken ? "BROKEN" : "AVAILABLE",
 				note: broken ? (note ?? null) : null,
@@ -295,6 +309,7 @@ export async function setSeatBroken(
 		});
 		await tx.bookingLog.create({
 			data: {
+				eventId,
 				seatId,
 				action: broken ? "BROKEN" : "REPAIRED",
 				performedBy,
@@ -311,14 +326,15 @@ export async function setSeatBlocked(
 	blocked: boolean,
 	note?: string,
 ) {
+	const eventId = await getCurrentEventId();
 	await prisma.$transaction(async (tx) => {
-		const seat = await tx.seat.findUnique({where: {id: seatId}});
+		const seat = await tx.seat.findUnique({where: {eventId_id: {eventId, id: seatId}}});
 		if (!seat) throw new Error("SEAT_NOT_FOUND");
 		if (blocked && seat.status === "BOOKED") {
 			throw new Error("SEAT_BOOKED");
 		}
 		await tx.seat.update({
-			where: {id: seatId},
+			where: {eventId_id: {eventId, id: seatId}},
 			data: {
 				status: blocked ? "BLOCKED" : "AVAILABLE",
 				bookedBy: null,
@@ -327,6 +343,7 @@ export async function setSeatBlocked(
 		});
 		await tx.bookingLog.create({
 			data: {
+				eventId,
 				seatId,
 				action: blocked ? "BLOCKED" : "UNBLOCKED",
 				performedBy,
