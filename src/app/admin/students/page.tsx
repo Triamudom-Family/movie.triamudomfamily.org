@@ -264,8 +264,15 @@ export default function StudentsPage() {
 											</Badge>
 										) : null}
 									</TableCell>
-									<TableCell className="text-xs text-muted-foreground">
-										{new Date(s.createdAt).toLocaleDateString(undefined, {timeZone: "Asia/Bangkok"})}
+									<TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+										{new Date(s.createdAt).toLocaleString(undefined, {
+											timeZone: "Asia/Bangkok",
+											year: "numeric",
+											month: "short",
+											day: "numeric",
+											hour: "2-digit",
+											minute: "2-digit",
+										})}
 									</TableCell>
 									<TableCell className="text-right">
 										<Button
