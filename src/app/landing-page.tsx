@@ -372,7 +372,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 					>
 						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img src="https://cdn.simpleicons.org/github/71717a" alt="GitHub" className="h-3.5 w-3.5"/>
-						Arckanop
+						Github
 					</a>
 					<span className="text-zinc-700">·</span>
 					<a
@@ -384,7 +384,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 						AGPL-3.0
 					</a>
 					<span className="text-zinc-700">·</span>
-					<span className="text-zinc-500">Movie Registration v1.1.0</span>
+					<span className="text-zinc-500">Movie Registration v1.2.3</span>
 				</div>
 			</footer>
 		</div>

@@ -182,7 +182,7 @@ export default function StudentsPage() {
 					<div className="space-y-1">
 						<Label>Class</Label>
 						<Input
-							placeholder="e.g. 601"
+							placeholder="e.g. 946"
 							maxLength={3}
 							value={filters.class}
 							onChange={(e) => setFilters({...filters, class: e.target.value})}
