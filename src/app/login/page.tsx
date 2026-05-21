@@ -4,12 +4,25 @@ import {getSession} from "@/server/session";
 import {prisma} from "@/server/prisma";
 import {LoginForm} from "./login-form";
 
-function LockIcon() {
+function Topbar() {
 	return (
-		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-			<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-			<path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-		</svg>
+		<header className="flex items-center justify-between px-7 py-4">
+			<Link
+				href="/"
+				className="inline-flex items-center gap-1.5 text-[13px] text-white/60 transition-colors hover:text-white/90"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+					<path d="M15 18l-6-6 6-6"/>
+				</svg>
+				<span>กลับหน้าหลัก</span>
+			</Link>
+			<Link
+				href="/register"
+				className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+			>
+				Student Registration →
+			</Link>
+		</header>
 	);
 }
 
@@ -25,40 +38,32 @@ export default async function LoginPage() {
 	}
 	return (
 		<div className="flex flex-1 flex-col">
-			<nav className="flex items-center justify-between px-6 py-4">
-				<Link
-					href="/"
-					className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+			<Topbar/>
+			<main className="flex flex-1 items-center justify-center px-4 py-8">
+				<div
+					className="w-[500px] max-w-[calc(100vw-32px)] rounded-[14px] border-[0.5px] border-white/10 bg-[rgba(20,20,28,0.55)] p-[30px] backdrop-blur-[20px] sm:p-[30px]"
+					style={{
+						boxShadow:
+							"0 0 50px rgba(236,72,153,0.10), 0 20px 40px -10px rgba(0,0,0,0.5)",
+						WebkitBackdropFilter: "blur(20px)",
+					}}
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-					กลับหน้าหลัก
-				</Link>
-				<Link
-					href="/register"
-					className="text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-				>
-					Student register →
-				</Link>
-			</nav>
-
-			<div className="flex flex-1 items-center justify-center px-4 py-8">
-				<div className="w-[380px] max-w-[calc(100vw-32px)] rounded-[14px] border-[0.5px] border-white/[0.08] bg-[#14141c] p-7">
-					<div className="mb-5 text-center">
-						{/*<div className="mb-4 mx-auto flex h-11 w-11 items-center justify-center rounded-[11px] bg-[#f0357f] text-white">*/}
-						{/*	<LockIcon/>*/}
-						{/*</div>*/}
-						<h1 className="text-[1.4rem] font-semibold tracking-tight text-white">Staff Login</h1>
-						<p className="mt-1.5 text-sm text-zinc-400">
-							{/*Students should use{" "}*/}
-							{/*<Link href="/register" className="text-zinc-200 underline underline-offset-4 hover:text-white transition-colors">*/}
-							{/*	/register*/}
-							{/*</Link>{" "}*/}
-							{/*with their school Google account.*/}
-						</p>
-					</div>
+					{/*<div className="mb-3 text-[12px] font-medium text-pink-400/85">*/}
+					{/*	STAFF · เข้าสู่ระบบ*/}
+					{/*</div>*/}
+					<h1 className="mb-4 text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-white">
+						Staff Login
+					</h1>
+					{/*<p className="mb-3 text-[13px] leading-[1.5] text-white/60">*/}
+					{/*	สำหรับเจ้าหน้าที่เท่านั้น นักเรียนใช้{" "}*/}
+					{/*	<Link href="/register" className="text-white/80 underline underline-offset-4 hover:text-white transition-colors">*/}
+					{/*		/register*/}
+					{/*	</Link>{" "}*/}
+					{/*	ด้วยบัญชี Google ของโรงเรียน*/}
+					{/*</p>*/}
 					<LoginForm/>
 				</div>
-			</div>
+			</main>
 		</div>
 	);
 }
