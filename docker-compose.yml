@@ -1,9 +1,21 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: runner
     env_file:
       - .env
     restart: unless-stopped
+    networks:
+      - movie-web
+
+  migrate:
+    build:
+      context: .
+      target: builder
+    env_file:
+      - .env
+    command: yarn prisma migrate deploy
     networks:
       - movie-web
 
