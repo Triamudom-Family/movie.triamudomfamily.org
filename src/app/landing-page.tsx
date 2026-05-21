@@ -2,19 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import {useEffect, useState, useSyncExternalStore} from "react";
+import {useEffect, useRef, useState, useSyncExternalStore} from "react";
 import type {EventSettings} from "@/server/settings";
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Fixed event copy — admin override comes later (separate ticket).
-───────────────────────────────────────────────────────────────────────────── */
-const EVENT_DATE_THAI    = "25 พฤษภาคม 2569";
-const EVENT_DATE_EN      = "Monday, 25 May 2026";
-const EVENT_TIME         = "15:30 น.";
-const EVENT_DOORS        = "Doors open 15:00";
-const EVENT_DATETIME_ISO = "2026-05-25T15:30:00+07:00";
-const VENUE_NAME         = "Siam Pavalai · ชั้น 5 Paragon Cineplex";
-const VENUE_SUB          = "Paragon Cineplex · ชั้น 5 สยามพารากอน";
+/* DB is the source of truth — uncomment to re-enable hardcoded fallbacks. */
+// const EVENT_DATE_THAI    = "25 พฤษภาคม 2569";
+// const EVENT_TIME         = "15:30 น.";
+// const EVENT_DATETIME_ISO = "2026-05-25T15:30:00+07:00";
+// const VENUE_NAME         = "Siam Pavalai · ชั้น 5 Paragon Cineplex";
 
 /* Film-grain texture (SVG fractal-noise as a data-URI) */
 const GRAIN =
@@ -25,11 +20,43 @@ const GRAIN =
    ─ Hero:    drop /public/hero.jpg
    ─ Gallery: drop /public/gallery/1.jpg … 9.jpg
 ───────────────────────────────────────────────────────────────────────────── */
-function ImageSlot({src, alt, hint}: {src: string; alt: string; hint: string}) {
+function ImageSlot({
+	src,
+	alt,
+	hint,
+	eager = false,
+}: {
+	src: string;
+	alt: string;
+	hint: string;
+	eager?: boolean;
+}) {
 	const [failed, setFailed] = useState(false);
+	const [visible, setVisible] = useState(eager);
+	const ref = useRef<HTMLDivElement | null>(null);
+
+	useEffect(() => {
+		if (eager || visible) return;
+		const node = ref.current;
+		if (!node) return;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						setVisible(true);
+						observer.disconnect();
+						break;
+					}
+				}
+			},
+			{rootMargin: "300px 0px"},
+		);
+		observer.observe(node);
+		return () => observer.disconnect();
+	}, [eager, visible]);
 
 	return (
-		<div className="relative h-full w-full overflow-hidden">
+		<div ref={ref} className="relative h-full w-full overflow-hidden">
 			<div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0c0c14]">
 				<div
 					className="absolute inset-0 opacity-[0.025]"
@@ -57,13 +84,14 @@ function ImageSlot({src, alt, hint}: {src: string; alt: string; hint: string}) {
 				<span className="relative text-[8px] text-zinc-800">{hint}</span>
 			</div>
 
-			{!failed && (
+			{!failed && visible && (
 				<Image
 					src={src}
 					alt={alt}
 					fill
 					sizes="(max-width: 768px) 100vw, 50vw"
 					className="object-cover"
+					loading={eager ? "eager" : "lazy"}
 					onError={() => setFailed(true)}
 				/>
 			)}
@@ -80,10 +108,10 @@ const GALLERY = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 18, 19].map(
 ───────────────────────────────────────────────────────────────────────────── */
 export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 	const {eventAt, eventEndTime, venue} = eventSettings;
-	const countdownIso = eventAt ?? EVENT_DATETIME_ISO;
+	const countdownIso = eventAt; // ?? EVENT_DATETIME_ISO;
 
-	let dateDisplay = EVENT_DATE_THAI;
-	let timeDisplay = EVENT_TIME;
+	let dateDisplay = ""; // EVENT_DATE_THAI;
+	let timeDisplay = ""; // EVENT_TIME;
 	if (eventAt) {
 		const d = new Date(eventAt);
 		dateDisplay = d.toLocaleDateString("th-TH", {
@@ -100,12 +128,12 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 		});
 		timeDisplay = eventEndTime ? `${start} – ${eventEndTime} น.` : `${start} น.`;
 	}
-	const venueDisplay = venue ?? VENUE_NAME;
+	const venueDisplay = venue ?? ""; // ?? VENUE_NAME;
 
 	// Defer the countdown until after hydration so server and client first paint match.
 	const showCountdown = useSyncExternalStore(
 		() => () => {},
-		() => new Date(countdownIso).getTime() > Date.now(),
+		() => (countdownIso ? new Date(countdownIso).getTime() > Date.now() : false),
 		() => false,
 	);
 
@@ -161,11 +189,11 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 				</header>
 
 				{/* Hero content */}
-				<main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-10 px-6 py-14 md:grid-cols-2 md:gap-[50px] md:py-20">
+				<main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-start gap-6 px-10 pt-2 pb-10 sm:px-8 md:landscape:grid-cols-2 md:landscape:items-center md:landscape:gap-[50px] md:landscape:px-6 md:landscape:pt-20 md:landscape:pb-20">
 
 					{/* Group photo */}
 					<div
-						className="relative w-full overflow-hidden rounded-[2px]"
+						className="relative mx-auto w-[82%] max-w-[500px] overflow-hidden rounded-[2px] sm:w-full sm:max-w-[680px] md:landscape:mx-0 md:landscape:max-w-none"
 						style={{
 							aspectRatio: "3 / 2",
 							boxShadow: [
@@ -175,7 +203,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 							].join(", "),
 						}}
 					>
-						<ImageSlot src="/1.webp" alt="TU89 group photo" hint="Add /public/1.webp"/>
+						<ImageSlot src="/1.webp" alt="TU89 group photo" hint="Add /public/1.webp" eager/>
 						<span
 							className="pointer-events-none absolute bottom-3 left-3 font-mono text-[9px] tracking-[0.3em] uppercase"
 							style={{color: "rgba(255,255,255,0.55)"}}
@@ -191,7 +219,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 					</div>
 
 					{/* Info */}
-					<div className="flex w-full max-w-[500px] flex-col gap-5">
+					<div className="mx-auto flex w-full max-w-[500px] flex-col gap-5 sm:max-w-[560px] sm:px-6 md:landscape:mx-0 md:landscape:max-w-[500px] md:landscape:px-0">
 
 						{/*/!* Now booking pill *!/*/}
 						{/*<div className="flex items-center gap-2">*/}
@@ -211,7 +239,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 
 						{/* Title */}
 						<h1
-							className="-mt-1 text-[72px] font-medium leading-[0.88] tracking-[-0.05em] text-white"
+							className="-mt-1 text-[60px] font-medium leading-[0.9] tracking-[-0.045em] text-white sm:text-[64px] md:landscape:leading-[0.88] md:landscape:tracking-[-0.05em] lg:landscape:text-[72px]"
 							style={{textShadow: "0 0 60px rgba(236,72,153,0.45)"}}
 						>
 							The First Movie<br/>
@@ -219,7 +247,7 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 						</h1>
 
 						{/* Subtitle */}
-						<p className="font-mono text-[11px] font-bold tracking-[0.35em] text-white/70 uppercase">
+						<p className="font-mono text-[12px] font-bold tracking-[0.18em] text-white/70 uppercase sm:text-[13px] sm:tracking-[0.22em] md:landscape:text-[11px] md:landscape:tracking-[0.35em]">
 							First meet · First memory · #TU89
 						</p>
 
@@ -254,10 +282,10 @@ export function LandingPage({eventSettings}: {eventSettings: EventSettings}) {
 						</dl>
 
 						{/* Countdown */}
-						{showCountdown && <HeroCountdown targetIso={countdownIso}/>}
+						{showCountdown && countdownIso && <HeroCountdown targetIso={countdownIso}/>}
 
 						{/* CTA row */}
-						<div className="mt-[10px] flex items-center gap-[14px]">
+						<div className="mt-[10px] flex items-center justify-center gap-[14px] md:landscape:justify-start">
 							<Link
 								href="/register"
 								className="rounded-full bg-pink-500 px-[30px] py-[15px] text-sm font-semibold tracking-wide text-white transition-all hover:bg-pink-600 active:scale-[0.97]"
@@ -377,11 +405,11 @@ function SpecRow({
 	const [primary, secondary] = arr;
 
 	return (
-		<div className="flex items-start gap-4 border-t border-b border-white/5 py-3 -mt-px">
-			<dt className="w-[110px] shrink-0 pt-0.5 font-mono text-[9px] font-bold tracking-[0.4em] text-white/70 uppercase">
+		<div className="flex items-start justify-between gap-3 border-t border-b border-white/5 py-3 -mt-px md:landscape:justify-start md:landscape:gap-4">
+			<dt className="w-[60px] shrink-0 pt-0.5 font-mono text-[9px] font-bold tracking-[0.25em] text-white/70 uppercase md:landscape:w-[110px] md:landscape:tracking-[0.4em]">
 				{label}
 			</dt>
-			<dd className="flex flex-col">
+			<dd className="flex flex-col text-right md:landscape:text-left">
 				<span className="text-[14px] text-white">{primary}</span>
 				{secondary && (
 					<span className="mt-0.5 text-[12px] text-zinc-400">{secondary}</span>
@@ -431,7 +459,7 @@ function HeroCountdown({targetIso}: {targetIso: string}) {
 function CountCell({value, label}: {value: number; label: string}) {
 	return (
 		<div
-			className="flex flex-col items-center gap-1.5 rounded-[2px] px-2 py-3"
+			className="flex flex-col items-center gap-1.5 rounded-[12px] px-2 py-3"
 			style={{
 				background: "rgba(255,255,255,0.02)",
 				boxShadow: "inset 0 0 0 0.5px rgba(255,255,255,0.06)",

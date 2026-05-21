@@ -6,8 +6,6 @@ import {GoogleSignInButton} from "./google-sign-in-button";
 import {RegisterForm} from "./register-form";
 import {SignOutButton} from "./sign-out-button";
 
-const ANUPHAN_FONT = {fontFamily: "var(--font-anuphan)"} as const;
-
 const STUDENT_DOMAIN =
 	process.env.STUDENT_EMAIL_DOMAIN ?? "@student.triamudom.ac.th";
 
@@ -74,17 +72,11 @@ function Card({
 			}}
 		>
 			{eyebrow && (
-				<div
-					className="mb-3 text-[12px] font-medium text-pink-400/85"
-					style={ANUPHAN_FONT}
-				>
+				<div className="mb-3 text-[12px] font-medium text-pink-400/85">
 					{eyebrow}
 				</div>
 			)}
-			<h1
-				className="mb-4 text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-white"
-				style={ANUPHAN_FONT}
-			>
+			<h1 className="mb-4 text-[28px] font-bold leading-[1.15] tracking-[-0.02em] text-white">
 				{title}
 			</h1>
 			<p className="mb-3 text-[13px] leading-[1.5] text-white/60">{subtitle}</p>
