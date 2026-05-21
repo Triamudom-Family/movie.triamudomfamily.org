@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/server/prisma";
 import {requireUser} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 export async function GET() {
 	const auth = await requireUser(["ADMIN"]);
@@ -8,17 +9,21 @@ export async function GET() {
 		return NextResponse.json({error: "Unauthorized"}, {status: 401});
 	}
 
+	const eventId = await getCurrentEventId();
+
 	const [counts, countsByType, bookingLogs, staffUsers, studentsTotal, studentsSeated, studentsByClass] = await Promise.all([
 		prisma.seat.groupBy({
 			by: ["status"],
+			where: {eventId},
 			_count: {_all: true},
 		}),
 		prisma.seat.groupBy({
 			by: ["type", "status"],
+			where: {eventId},
 			_count: {_all: true},
 		}),
 		prisma.bookingLog.findMany({
-			where: {action: "BOOKED"},
+			where: {eventId, action: "BOOKED"},
 			select: {performedAt: true, performedBy: true},
 			orderBy: {performedAt: "asc"},
 		}),
@@ -26,10 +31,11 @@ export async function GET() {
 			where: {role: {in: ["STAFF", "ADMIN"]}},
 			select: {id: true, username: true, name: true},
 		}),
-		prisma.student.count(),
-		prisma.student.count({where: {seatId: {not: null}}}),
+		prisma.student.count({where: {eventId}}),
+		prisma.student.count({where: {eventId, seatId: {not: null}}}),
 		prisma.student.groupBy({
 			by: ["class"],
+			where: {eventId},
 			_count: {_all: true},
 		}),
 	]);
@@ -85,17 +91,17 @@ export async function GET() {
 	const [seatedByClass, bookedNoStudent, studentSeatMismatch] = await Promise.all([
 		prisma.student.groupBy({
 			by: ["class"],
-			where: {seatId: {not: null}},
+			where: {eventId, seatId: {not: null}},
 			_count: {_all: true},
 		}),
 		// Seats marked BOOKED but no student linked
 		prisma.seat.findMany({
-			where: {status: "BOOKED", student: null},
+			where: {eventId, status: "BOOKED", student: null},
 			select: {id: true},
 		}),
 		// Students with a seatId but the seat is not BOOKED
 		prisma.student.findMany({
-			where: {seatId: {not: null}, seat: {status: {not: "BOOKED"}}},
+			where: {eventId, seatId: {not: null}, seat: {status: {not: "BOOKED"}}},
 			select: {studentId: true, name: true, surname: true, seatId: true, seat: {select: {status: true}}},
 		}),
 	]);

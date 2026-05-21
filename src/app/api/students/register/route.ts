@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {z} from "zod";
 import {prisma} from "@/server/prisma";
 import {getSession} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 const STUDENT_DOMAIN =
 	process.env.STUDENT_EMAIL_DOMAIN ?? "@student.triamudom.ac.th";
@@ -39,16 +40,29 @@ export async function POST(req: Request) {
 		);
 	}
 	const data = parsed.data;
+	const eventId = await getCurrentEventId();
 
-	const existing = await prisma.student.findUnique({
+	// If they already registered for the current event, return idempotently.
+	const existingCurrent = await prisma.student.findUnique({
+		where: {eventId_userId: {eventId, userId: session.user.id}},
+	});
+	if (existingCurrent) {
+		return NextResponse.json({student: existingCurrent}, {status: 200});
+	}
+
+	// Block any user who registered in a previous event.
+	const existingAnyEvent = await prisma.student.findFirst({
 		where: {userId: session.user.id},
 	});
-	if (existing) {
-		return NextResponse.json({student: existing}, {status: 200});
+	if (existingAnyEvent) {
+		return NextResponse.json(
+			{error: "บัญชีนี้ลงทะเบียนในปีก่อนหน้าแล้ว"},
+			{status: 409},
+		);
 	}
 
 	const idTaken = await prisma.student.findUnique({
-		where: {studentId: data.studentId},
+		where: {eventId_studentId: {eventId, studentId: data.studentId}},
 	});
 	if (idTaken) {
 		return NextResponse.json(
@@ -72,6 +86,7 @@ export async function POST(req: Request) {
 
 	const student = await prisma.student.create({
 		data: {
+			eventId,
 			userId: session.user.id,
 			googleId: account.accountId,
 			email,

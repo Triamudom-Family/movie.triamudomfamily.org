@@ -2,6 +2,7 @@ import Link from "next/link";
 import {redirect} from "next/navigation";
 import {getSession} from "@/server/session";
 import {prisma} from "@/server/prisma";
+import {getCurrentEventId} from "@/server/event";
 import {GoogleSignInButton} from "./google-sign-in-button";
 import {RegisterForm} from "./register-form";
 import {SignOutButton} from "./sign-out-button";
@@ -123,10 +124,27 @@ export default async function RegisterPage() {
 		);
 	}
 
+	const eventId = await getCurrentEventId();
 	const student = await prisma.student.findUnique({
-		where: {userId: session.user.id},
+		where: {eventId_userId: {eventId, userId: session.user.id}},
 	});
 	if (student) redirect("/register/ticket");
+
+	// Block users who registered in a prior event from re-registering.
+	const pastRegistration = await prisma.student.findFirst({
+		where: {userId: session.user.id},
+		select: {event: {select: {year: true}}},
+	});
+	if (pastRegistration) {
+		return layout(
+			<Card
+				title="ลงทะเบียนไปแล้วในปีก่อนหน้า"
+				subtitle={`บัญชีนี้เคยลงทะเบียนในรุ่น ${pastRegistration.event.year} แล้ว ไม่สามารถลงทะเบียนซ้ำในปีนี้ได้`}
+			>
+				<AccountChip email={email} showSignOut/>
+			</Card>,
+		);
+	}
 
 	return layout(
 		<Card

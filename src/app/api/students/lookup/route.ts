@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/server/prisma";
 import {requireUser} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 export async function GET(req: Request) {
 	const auth = await requireUser(["STAFF", "ADMIN"]);
@@ -12,8 +13,9 @@ export async function GET(req: Request) {
 	if (!token || !token.startsWith("STU-")) {
 		return NextResponse.json({error: "Invalid token"}, {status: 400});
 	}
+	const eventId = await getCurrentEventId();
 	const student = await prisma.student.findUnique({
-		where: {qrToken: token},
+		where: {eventId_qrToken: {eventId, qrToken: token}},
 		select: {
 			id: true,
 			name: true,

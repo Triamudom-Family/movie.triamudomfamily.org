@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/server/prisma";
 import {requireUser} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 export async function GET(req: Request) {
 	const auth = await requireUser(["ADMIN"]);
@@ -14,11 +15,18 @@ export async function GET(req: Request) {
 	const from = searchParams.get("from");
 	const to = searchParams.get("to");
 
+	const eventId = await getCurrentEventId();
+
+	const rowSeatIds = row
+		? (await prisma.seat.findMany({where: {eventId, row}, select: {id: true}})).map((s) => s.id)
+		: undefined;
+
 	const logs = await prisma.bookingLog.findMany({
 		where: {
+			eventId,
 			action: action ? action : undefined,
 			performedBy: performedBy ? performedBy : undefined,
-			seatId: row ? {startsWith: `${row}-`} : undefined,
+			seatId: rowSeatIds ? {in: rowSeatIds} : undefined,
 			performedAt: {
 				gte: from ? new Date(from) : undefined,
 				lte: to ? new Date(to) : undefined,
@@ -35,7 +43,7 @@ export async function GET(req: Request) {
 
 	const [students, users] = await Promise.all([
 		prisma.student.findMany({
-			where: {id: {in: studentIds}},
+			where: {eventId, id: {in: studentIds}},
 			select: {id: true, name: true, surname: true, class: true, studentId: true},
 		}),
 		prisma.user.findMany({

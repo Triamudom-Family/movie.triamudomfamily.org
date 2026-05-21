@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/server/prisma";
 import {requireUser} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 export async function GET(req: Request) {
 	const auth = await requireUser(["STAFF", "ADMIN"]);
@@ -12,8 +13,10 @@ export async function GET(req: Request) {
 	if (q.length < 2) {
 		return NextResponse.json({students: []});
 	}
+	const eventId = await getCurrentEventId();
 	const students = await prisma.student.findMany({
 		where: {
+			eventId,
 			OR: [
 				{studentId: {contains: q, mode: "insensitive"}},
 				{name: {contains: q, mode: "insensitive"}},

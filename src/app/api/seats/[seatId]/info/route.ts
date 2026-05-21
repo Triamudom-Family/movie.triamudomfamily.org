@@ -1,6 +1,7 @@
 import {NextResponse} from "next/server";
 import {prisma} from "@/server/prisma";
 import {requireUser} from "@/server/session";
+import {getCurrentEventId} from "@/server/event";
 
 export async function GET(
 	_req: Request,
@@ -11,8 +12,9 @@ export async function GET(
 		return NextResponse.json({error: "Unauthorized"}, {status: 401});
 	}
 	const {seatId} = await ctx.params;
-	const seat = await prisma.seat.findUnique({
-		where: {id: seatId},
+	const eventId = await getCurrentEventId();
+	const seat = await prisma.seat.findFirst({
+		where: {id: seatId, eventId},
 		include: {
 			student: {
 				select: {
