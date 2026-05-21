@@ -1,11 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+  schemas   = ["movie"]
 }
 
 enum SeatStatus {
@@ -13,12 +15,30 @@ enum SeatStatus {
   BOOKED
   BLOCKED
   BROKEN
+
+  @@schema("movie")
 }
 
 enum Role {
   STAFF
   ADMIN
   STUDENT
+
+  @@schema("movie")
+}
+
+model Event {
+  id        String       @id @default(uuid())
+  year      Int          @unique
+  title     String
+  venue     String?
+  showAt    DateTime?
+  createdAt DateTime     @default(now())
+  students  Student[]
+  seats     Seat[]
+  bookings  BookingLog[]
+
+  @@schema("movie")
 }
 
 model User {
@@ -34,28 +54,43 @@ model User {
   updatedAt       DateTime  @updatedAt
   sessions        Session[]
   accounts        Account[]
-  student         Student?
+  students        Student[]
+
+  @@schema("movie")
 }
 
 model Student {
   id         String   @id @default(uuid())
-  userId     String   @unique
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  googleId   String   @unique
-  email      String   @unique
+  googleId   String
+  email      String
   name       String
   surname    String
   class      String
   rollNumber Int
-  studentId  String   @unique
-  qrToken    String   @unique
-  seatId     String?  @unique
-  seat       Seat?    @relation(fields: [seatId], references: [id])
+  studentId  String
+  qrToken    String
+  seatId     String?
+  seat       Seat?    @relation(fields: [eventId, seatId], references: [eventId, id])
   createdAt  DateTime @default(now())
+
+  @@unique([eventId, userId])
+  @@unique([eventId, googleId])
+  @@unique([eventId, email])
+  @@unique([eventId, studentId])
+  @@unique([eventId, qrToken])
+  @@unique([eventId, seatId])
+  @@index([eventId])
+  @@schema("movie")
 }
 
 model Seat {
-  id        String     @id
+  id        String
+  eventId   String
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
   row       String
   number    Int
   section   String
@@ -67,12 +102,18 @@ model Seat {
   bookedAt  DateTime?
   updatedAt DateTime   @updatedAt
 
+  @@id([eventId, id])
+  @@unique([eventId, row, number])
+  @@index([eventId])
   @@index([row])
   @@index([status])
+  @@schema("movie")
 }
 
 model BookingLog {
   id          String   @id @default(uuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   seatId      String
   studentId   String?
   action      String
@@ -80,9 +121,11 @@ model BookingLog {
   performedAt DateTime @default(now())
   note        String?
 
+  @@index([eventId])
   @@index([performedAt])
   @@index([seatId])
   @@index([performedBy])
+  @@schema("movie")
 }
 
 model Session {
@@ -98,6 +141,7 @@ model Session {
 
   @@index([userId])
   @@index([token])
+  @@schema("movie")
 }
 
 model Account {
@@ -118,12 +162,15 @@ model Account {
 
   @@unique([providerId, accountId])
   @@index([userId])
+  @@schema("movie")
 }
 
 model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+
+  @@schema("movie")
 }
 
 model Verification {
@@ -135,4 +182,5 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+  @@schema("movie")
 }
