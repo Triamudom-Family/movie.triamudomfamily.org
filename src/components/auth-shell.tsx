@@ -3,25 +3,25 @@ const GRAIN =
 
 export function AuthShell({children}: {children: React.ReactNode}) {
 	return (
-		<div className="relative isolate flex min-h-svh flex-col overflow-hidden bg-[#07060a] text-white [color-scheme:dark]">
+		<div className="relative isolate flex min-h-svh flex-col overflow-hidden bg-[#07060a] text-white [color-scheme:dark] print:bg-white">
 			<div
 				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 z-0"
+				className="pointer-events-none absolute inset-0 z-0 print:hidden"
 				style={{
 					background: [
-						"radial-gradient(ellipse 900px 700px at 20% 15%, rgba(236,72,153,0.18), transparent 60%)",
-						"radial-gradient(ellipse 700px 500px at 85% 5%, rgba(168,85,247,0.10), transparent 55%)",
+						"radial-gradient(ellipse 280px 45px at 50% 0%, rgba(236,72,153,0.18), transparent 60%)",
+						"radial-gradient(ellipse 220px 35px at 80% 0%, rgba(168,85,247,0.10), transparent 55%)",
 					].join(", "),
 				}}
 			/>
 			<div
 				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 z-0 opacity-[0.05] mix-blend-overlay"
+				className="pointer-events-none absolute inset-0 z-0 opacity-[0.05] mix-blend-overlay print:hidden"
 				style={{backgroundImage: GRAIN, backgroundRepeat: "repeat"}}
 			/>
 			<div
 				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 z-0"
+				className="pointer-events-none absolute inset-0 z-0 print:hidden"
 				style={{
 					background:
 						"radial-gradient(ellipse 80% 70% at 50% 40%, transparent, rgba(7,6,10,0.7) 100%)",
