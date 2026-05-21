@@ -9,12 +9,12 @@ type FieldProps = {
 	id: string;
 	label: string;
 	hint?: string;
-	hintFont?: "mono" | "anuphan";
+	hintMono?: boolean;
 	mono?: boolean;
 	error?: string;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
-function Field({id, label, hint, hintFont = "mono", mono, error, className, ...rest}: FieldProps) {
+function Field({id, label, hint, hintMono = true, mono, error, className, ...rest}: FieldProps) {
 	return (
 		<div>
 			<div className="mb-1.5 flex items-baseline justify-between gap-2">
@@ -25,9 +25,8 @@ function Field({id, label, hint, hintFont = "mono", mono, error, className, ...r
 					<span
 						className={cn(
 							"text-[11px] tracking-[0.05em] text-white/40",
-							hintFont === "mono" && "font-mono",
+							hintMono && "font-mono",
 						)}
-						style={hintFont === "anuphan" ? {fontFamily: "var(--font-anuphan)"} : undefined}
 					>
 						{hint}
 					</span>
@@ -127,7 +126,7 @@ export function RegisterForm({email}: {email: string}) {
 						id="class"
 						label="ห้อง"
 						hint="เช่น 067 หรือ 946"
-						hintFont="anuphan"
+						hintMono={false}
 						mono
 						placeholder="070"
 						required
@@ -161,7 +160,7 @@ export function RegisterForm({email}: {email: string}) {
 						id="studentId"
 						label="รหัสนักเรียน"
 						hint="ยืนยันจากอีเมล"
-						hintFont="anuphan"
+						hintMono={false}
 						mono
 						required
 						value={form.studentId}
