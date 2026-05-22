@@ -60,7 +60,7 @@ function Card({
 }: {
 	eyebrow?: string;
 	title: string;
-	subtitle: string;
+	subtitle: React.ReactNode;
 	children: React.ReactNode;
 }) {
 	return (
@@ -102,7 +102,13 @@ export default async function RegisterPage() {
 		return layout(
 			<Card
 				title="ลงทะเบียนนักเรียน"
-				subtitle={`ลงทะเบียนด้วยบัญชี Google ของโรงเรียน (${STUDENT_DOMAIN}) เพื่อลงทะเบียน`}
+				subtitle={
+					<>
+						<span className="whitespace-nowrap">ลงทะเบียนด้วยบัญชี Google</span>{" "}
+						<span className="whitespace-nowrap">ของโรงเรียน ({STUDENT_DOMAIN})</span>{" "}
+						<span className="whitespace-nowrap">เพื่อลงทะเบียน</span>
+					</>
+				}
 			>
 				<GoogleSignInButton/>
 			</Card>,
