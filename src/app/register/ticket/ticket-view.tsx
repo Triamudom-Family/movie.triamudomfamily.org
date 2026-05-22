@@ -5,6 +5,7 @@ import {useRouter} from "next/navigation";
 import {ChevronLeft, Download, LogOut, Armchair} from "lucide-react";
 import Link from "next/link";
 import {signOut} from "@/lib/auth-client";
+import {AdPopup} from "./ad-popup";
 
 type SeatInfo =
 	| {assigned: false}
@@ -48,6 +49,7 @@ export function TicketView(props: TicketViewProps) {
 
 	return (
 		<div className="relative mx-auto w-full max-w-[420px] px-6 pt-4 pb-8">
+			<AdPopup />
 			<header className="flex items-center justify-between px-1 py-3.5 text-[12px] text-white/60 print:hidden">
 				<Link href="/" className="inline-flex items-center gap-1 hover:text-white/90">
 					<ChevronLeft className="h-4 w-4" aria-hidden />
