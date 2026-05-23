@@ -2,6 +2,7 @@ import Link from "next/link";
 import {redirect} from "next/navigation";
 import {getSession} from "@/server/session";
 import {prisma} from "@/server/prisma";
+import {SiteFooter} from "@/components/site-footer";
 import {LoginForm} from "./login-form";
 
 function Topbar() {
@@ -64,6 +65,7 @@ export default async function LoginPage() {
 					<LoginForm/>
 				</div>
 			</main>
+			<SiteFooter/>
 		</div>
 	);
 }
