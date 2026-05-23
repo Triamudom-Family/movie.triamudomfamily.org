@@ -19,6 +19,7 @@ export type TicketViewProps = {
 		class: string;
 		rollNumber: number;
 		qrToken: string;
+		emailPrefix: string;
 	};
 	seat: SeatInfo;
 	movieTitle: string;
@@ -48,22 +49,17 @@ export function TicketView(props: TicketViewProps) {
 	} = props;
 
 	return (
-		<div className="relative mx-auto w-full max-w-[420px] px-6 pt-4 pb-8">
+		<div className="relative mx-auto w-full max-w-[420px] px-6 pt-2 pb-4">
 			<AdPopup />
-			<header className="flex items-center justify-between px-1 py-3.5 text-[12px] text-white/60 print:hidden">
+			<header className="flex items-center px-1 py-2 text-[12px] text-white/60 print:hidden">
 				<Link href="/" className="inline-flex items-center gap-1 hover:text-white/90">
 					<ChevronLeft className="h-4 w-4" aria-hidden />
 					<span>กลับหน้าหลัก</span>
 				</Link>
-				<span className="text-[9px] uppercase tracking-[0.4em] text-white/45">
-					<b className="font-medium text-white">TU</b>
-					{/*<span className="mx-0.5">·</span>*/}
-					<b className="font-medium text-white">89</b>
-				</span>
 			</header>
 
 			<article
-				className="ticket relative mt-4 overflow-hidden rounded-[22px] bg-white"
+				className="ticket relative mt-2 overflow-hidden rounded-[22px] bg-white"
 				style={{
 					boxShadow:
 						"0 0 60px rgba(236, 72, 153, 0.25), 0 30px 60px -20px rgba(0, 0, 0, 0.6)",
@@ -75,8 +71,8 @@ export function TicketView(props: TicketViewProps) {
 				subTagline={movieSubTagline}
 			/>
 
-				<div className="px-[22px] pt-[16px] pb-[12px]">
-					<div className="grid grid-cols-2 gap-x-3 gap-y-3">
+				<div className="px-[22px] pt-[12px] pb-[8px]">
+					<div className="grid grid-cols-2 gap-x-3 gap-y-2">
 						<MetaCell
 							label="วันที่ฉาย"
 							primary={timeDisplay ? `${dateDisplay} · ${timeDisplay}` : dateDisplay}
@@ -97,55 +93,50 @@ export function TicketView(props: TicketViewProps) {
 							primaryMono
 							align="right"
 						/>
+						<MetaCell
+							label="รหัสนักเรียน"
+							primary={student.studentId}
+							primaryMono
+						/>
+						<MetaCell
+							label="รุ่น"
+							primary={`TU${student.emailPrefix}`}
+							primaryMono
+							align="right"
+						/>
 					</div>
 
 				</div>
 
 				<Perforation />
 
-				<div className="px-[22px] pt-[16px] pb-3 text-center">
-					<div className="mb-2.5 text-[13px] font-semibold tracking-[0.02em] text-[#ec4899]">
+				<div className="px-[22px] pt-[12px] pb-2 text-center">
+					<div className="mb-2 text-[12px] font-semibold tracking-[0.02em] text-[#ec4899]">
 						-- สแกนที่จุดลงทะเบียน --
 					</div>
 
-					<div className="mb-2.5 flex justify-center">
-						<div
-							className="rounded-full border border-[#f9a8d4] px-5 py-2 font-mono text-[18px] font-semibold tracking-[0.08em] text-[#831843]"
-							style={{
-								background:
-									"linear-gradient(135deg, #fce7f3 0%, #fbcfe8 50%, #f5d0fe 100%)",
-								boxShadow:
-									"0 4px 14px -4px rgba(236, 72, 153, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7)",
-							}}
-						>
-							{student.studentId}
-						</div>
-					</div>
-
-					<div className="mx-auto mb-2.5 flex h-[236px] w-[236px] items-center justify-center bg-white p-3.5">
-						<StyledQR data={qr.data} size={qr.size} pixels={200} />
+					<div className="mx-auto mb-2 flex h-[188px] w-[188px] items-center justify-center bg-white p-2">
+						<StyledQR data={qr.data} size={qr.size} pixels={172} />
 					</div>
 
 					<SeatStatusPill seat={seat} />
 
-					<hr className="mt-3 border-0 border-t border-[#e5e5e5]" />
+					<hr className="mt-2 border-0 border-t border-[#e5e5e5]" />
 				</div>
 
-				<div className="border-t border-[#f0f0f0] px-[22px] py-[12px]">
+				<div className="border-t border-[#ececec] px-[22px] py-[10px]">
 					<div className="flex items-baseline justify-between text-[10px] text-[#999]">
-						<div>
+						{/* <div>
 							<div className="mb-0.5 font-semibold uppercase tracking-[0.18em] text-[#4a4a4a]">
 								รหัสตั๋ว
 							</div>
 							<div className="font-mono text-[11px] text-[#555]">{student.qrToken}</div>
+						</div> */}
+						<div className="font-semibold uppercase tracking-[0.18em] text-[#4a4a4a]">
+							ออกเมื่อ
 						</div>
-						<div className="text-right">
-							<div className="mb-0.5 font-semibold uppercase tracking-[0.18em] text-[#4a4a4a]">
-								ออกเมื่อ
-							</div>
-							<div className="whitespace-nowrap text-[11px] text-[#555]">
-								{issuedAtFormatted}
-							</div>
+						<div className="whitespace-nowrap text-[11px] text-[#555]">
+							{issuedAtFormatted}
 						</div>
 					</div>
 				</div>
@@ -167,7 +158,7 @@ function TicketHero({
 }) {
 	return (
 		<div
-			className="relative flex aspect-[16/9] flex-col items-center overflow-hidden px-[22px] pt-[24px] pb-[18px] text-center backdrop-blur-md"
+			className="relative flex aspect-[21/9] flex-col items-center justify-center overflow-hidden px-[22px] pt-[16px] pb-[14px] text-center backdrop-blur-md"
 			style={{
 				background:
 					"linear-gradient(135deg, rgba(20, 14, 26, 0.92) 0%, rgba(10, 6, 18, 0.88) 50%, rgba(26, 15, 29, 0.92) 100%)",
@@ -184,14 +175,14 @@ function TicketHero({
 				}}
 			/>
 			<div className="relative z-10 flex flex-col items-center">
-				<div className="mb-4 text-[11px] font-medium tracking-[0.08em] text-white/70">
+				<div className="mb-2 text-[10px] font-medium tracking-[0.08em] text-white/70">
 					Triamudom Family
 				</div>
-				<h1 className="text-[42px] font-semibold leading-[1.05] tracking-[-0.02em] text-white">
+				<h1 className="text-[30px] font-semibold leading-[1.05] tracking-[-0.02em] text-white">
 					{title}
 				</h1>
-				<div className="mt-2 text-[18px] font-medium text-white/85">{tagline}</div>
-				<div className="mt-3 text-[13px] font-medium tracking-[0.04em] text-white/75">
+				<div className="mt-1 text-[14px] font-medium text-white/85">{tagline}</div>
+				<div className="mt-1.5 text-[11px] font-medium tracking-[0.04em] text-white/75">
 					{subTagline}
 				</div>
 			</div>
@@ -386,11 +377,11 @@ function ActionRow() {
 	}
 
 	return (
-		<div className="action-row flex gap-2.5 px-1 pt-[18px] print:hidden">
+		<div className="action-row flex gap-2.5 px-1 pt-3 print:hidden">
 			<button
 				type="button"
 				onClick={handleSave}
-				className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.14] bg-transparent py-3 text-[13px] text-white/85 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+				className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.14] bg-transparent py-2.5 text-[13px] text-white/85 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
 			>
 				<Download className="h-4 w-4" aria-hidden />
 				บันทึก
@@ -399,7 +390,7 @@ function ActionRow() {
 				type="button"
 				onClick={handleLogout}
 				disabled={pending}
-				className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.14] bg-transparent py-3 text-[13px] text-white/85 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:opacity-60"
+				className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.14] bg-transparent py-2.5 text-[13px] text-white/85 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:opacity-60"
 			>
 				<LogOut className="h-4 w-4" aria-hidden />
 				{pending ? "กำลังออกจากระบบ…" : "ออกจากระบบ"}

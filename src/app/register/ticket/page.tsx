@@ -73,6 +73,7 @@ export default async function TicketPage() {
 				class: student.class,
 				rollNumber: student.rollNumber,
 				qrToken: student.qrToken,
+				emailPrefix: student.email.slice(0, 2),
 			}}
 			seat={seat}
 			movieTitle="The First Movie"
