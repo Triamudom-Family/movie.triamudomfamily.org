@@ -3,6 +3,7 @@ import {redirect} from "next/navigation";
 import {getSession} from "@/server/session";
 import {prisma} from "@/server/prisma";
 import {getCurrentEventId} from "@/server/event";
+import {SiteFooter} from "@/components/site-footer";
 import {GoogleSignInButton} from "./google-sign-in-button";
 import {RegisterForm} from "./register-form";
 import {SignOutButton} from "./sign-out-button";
@@ -95,6 +96,7 @@ export default async function RegisterPage() {
 			<main className="flex flex-1 items-center justify-center px-4 py-8">
 				{cardContents}
 			</main>
+			<SiteFooter/>
 		</div>
 	);
 
