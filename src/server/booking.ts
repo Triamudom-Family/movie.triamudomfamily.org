@@ -117,13 +117,19 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 				ok: true as const,
 				overrode,
 				previousSeatId,
+				bookedStudent: {
+					studentId: student.studentId,
+					name: `${student.name} ${student.surname}`,
+					class: student.class,
+					rollNumber: student.rollNumber,
+				},
 			};
 		});
 
 		if (result.previousSeatId && result.previousSeatId !== seatId) {
 			await broadcastSeatUpdate(result.previousSeatId, "AVAILABLE");
 		}
-		await broadcastSeatUpdate(seatId, "BOOKED");
+		await broadcastSeatUpdate(seatId, "BOOKED", result.bookedStudent);
 
 		return {ok: true, overrode: result.overrode};
 	} catch (e) {

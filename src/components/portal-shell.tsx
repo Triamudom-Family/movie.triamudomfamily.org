@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import {usePathname, useRouter} from "next/navigation";
-import {ArmchairIcon, ScanLine, Users, ClipboardList, LogOut, GraduationCap, LayoutDashboard, Settings} from "lucide-react";
+import {ArmchairIcon, ScanLine, Users, ClipboardList, LogOut, GraduationCap, LayoutDashboard, Settings, TerminalSquare} from "lucide-react";
 import {signOut} from "@/lib/auth-client";
 import {Button} from "@/components/ui/button";
 import {cn} from "@/lib/utils";
@@ -21,6 +21,7 @@ const ADMIN_NAV: NavItem[] = [
 	{href: "/admin/staff", label: "Staff", icon: Users},
 	{href: "/admin/students", label: "Students", icon: GraduationCap},
 	{href: "/admin/logs", label: "Logs", icon: ClipboardList},
+	{href: "/admin/terminal", label: "Terminal", icon: TerminalSquare},
 	{href: "/admin/settings", label: "Settings", icon: Settings},
 ];
 
