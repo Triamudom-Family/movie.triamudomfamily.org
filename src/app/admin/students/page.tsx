@@ -32,6 +32,11 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
+function batchOf(email: string): string {
+	const m = email.match(/^(\d{2})/);
+	return m ? m[1] : "—";
+}
+
 type Seat = {
 	id: string;
 	row: string;
@@ -57,7 +62,8 @@ type Student = {
 export default function StudentsPage() {
 	const [students, setStudents] = useState<Student[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [filters, setFilters] = useState({q: "", class: "", seat: ""});
+	const [filters, setFilters] = useState({q: "", class: "", seat: "", batch: ""});
+	const [allBatches, setAllBatches] = useState<string[]>([]);
 	const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
 	const [deleting, setDeleting] = useState(false);
 	const isMount = useRef(true);
@@ -67,6 +73,7 @@ export default function StudentsPage() {
 		if (filters.q) params.set("q", filters.q);
 		if (filters.class) params.set("class", filters.class);
 		if (filters.seat) params.set("seat", filters.seat);
+		if (filters.batch) params.set("batch", filters.batch);
 		const res = await fetch(`/api/students?${params.toString()}`);
 		if (!res.ok) return null;
 		return (await res.json()).students;
@@ -84,7 +91,13 @@ export default function StudentsPage() {
 
 	useEffect(() => {
 		fetchStudents().then((next) => {
-			if (next) setStudents(next);
+			if (next) {
+				setStudents(next);
+				const tus = Array.from(
+					new Set(next.map((s) => batchOf(s.email)).filter((b) => b !== "—")),
+				).sort();
+				setAllBatches(tus);
+			}
 			setLoading(false);
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,7 +108,7 @@ export default function StudentsPage() {
 		const t = setTimeout(() => load(), 400);
 		return () => clearTimeout(t);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [filters.q, filters.class]);
+	}, [filters.q, filters.class, filters.batch]);
 
 	async function deleteStudent() {
 		if (!deleteTarget || deleting) return;
@@ -119,6 +132,7 @@ export default function StudentsPage() {
 			"surname",
 			"class",
 			"roll_number",
+			"tu",
 			"email",
 			"seat",
 			"seat_type",
@@ -132,6 +146,7 @@ export default function StudentsPage() {
 				s.surname,
 				s.class,
 				s.rollNumber,
+				batchOf(s.email),
 				s.email,
 				s.seat ? `${s.seat.row}-${s.seat.number}` : "",
 				s.seat?.type ?? "",
@@ -170,7 +185,7 @@ export default function StudentsPage() {
 				<CardHeader>
 					<CardTitle>Filters</CardTitle>
 				</CardHeader>
-				<CardContent className="grid gap-3 sm:grid-cols-3">
+				<CardContent className="grid gap-3 sm:grid-cols-4">
 					<div className="space-y-1">
 						<Label>Search</Label>
 						<Input
@@ -187,6 +202,27 @@ export default function StudentsPage() {
 							value={filters.class}
 							onChange={(e) => setFilters({...filters, class: e.target.value})}
 						/>
+					</div>
+					<div className="space-y-1">
+						<Label>TU</Label>
+						<Select
+							value={filters.batch || "all"}
+							onValueChange={(v) =>
+								setFilters({...filters, batch: v === "all" ? "" : v})
+							}
+						>
+							<SelectTrigger>
+								<SelectValue/>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All</SelectItem>
+								{allBatches.map((b) => (
+									<SelectItem key={b} value={b}>
+										{b}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
 					</div>
 					<div className="space-y-1">
 						<Label>Seat</Label>
@@ -206,7 +242,7 @@ export default function StudentsPage() {
 							</SelectContent>
 						</Select>
 					</div>
-					<Button onClick={load} className="sm:col-span-3" disabled={loading}>
+					<Button onClick={load} className="sm:col-span-4" disabled={loading}>
 						{loading ? "Loading…" : "Apply filters"}
 					</Button>
 				</CardContent>
@@ -214,7 +250,7 @@ export default function StudentsPage() {
 
 			<div className="flex items-center gap-4 text-sm text-muted-foreground">
 				<span>{students.length} student{students.length !== 1 ? "s" : ""}</span>
-				<span>{booked} with seat · {students.length - booked} without</span>
+				<span>{booked} assigned · {students.length - booked} unassigned</span>
 			</div>
 
 			<Card>
@@ -222,6 +258,7 @@ export default function StudentsPage() {
 					<Table>
 						<TableHeader>
 							<TableRow>
+								<TableHead>TU</TableHead>
 								<TableHead>Student ID</TableHead>
 								<TableHead>Name</TableHead>
 								<TableHead>Class</TableHead>
@@ -236,13 +273,14 @@ export default function StudentsPage() {
 						<TableBody>
 							{students.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+									<TableCell colSpan={10} className="text-center text-muted-foreground py-8">
 										{loading ? "Loading…" : "No students found."}
 									</TableCell>
 								</TableRow>
 							)}
 							{students.map((s) => (
 								<TableRow key={s.id}>
+									<TableCell className="font-mono text-xs">{batchOf(s.email)}</TableCell>
 									<TableCell className="font-mono text-xs">{s.studentId}</TableCell>
 									<TableCell>{s.name} {s.surname}</TableCell>
 									<TableCell>{s.class}</TableCell>

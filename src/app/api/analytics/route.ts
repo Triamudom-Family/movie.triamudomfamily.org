@@ -11,7 +11,7 @@ export async function GET() {
 
 	const eventId = await getCurrentEventId();
 
-	const [counts, countsByType, bookingLogs, staffUsers, studentsTotal, studentsSeated, studentsByClass] = await Promise.all([
+	const [counts, countsByType, bookingLogs, staffUsers, studentsTotal, studentsSeated, studentsByClass, studentsForTu] = await Promise.all([
 		prisma.seat.groupBy({
 			by: ["status"],
 			where: {eventId},
@@ -38,7 +38,24 @@ export async function GET() {
 			where: {eventId},
 			_count: {_all: true},
 		}),
+		prisma.student.findMany({
+			where: {eventId},
+			select: {email: true, seatId: true},
+		}),
 	]);
+
+	const tuMap = new Map<string, {total: number; seated: number}>();
+	for (const s of studentsForTu) {
+		const m = s.email.match(/^(\d{2})/);
+		const tu = m ? m[1] : "—";
+		const entry = tuMap.get(tu) ?? {total: 0, seated: 0};
+		entry.total += 1;
+		if (s.seatId) entry.seated += 1;
+		tuMap.set(tu, entry);
+	}
+	const tuBreakdown = Array.from(tuMap.entries())
+		.map(([tu, c]) => ({tu, total: c.total, seated: c.seated}))
+		.sort((a, b) => a.tu.localeCompare(b.tu));
 
 	const total = counts.reduce((acc, c) => acc + c._count._all, 0);
 	const summary = {
@@ -128,6 +145,6 @@ export async function GET() {
 	return NextResponse.json({
 		summary, bookingsByType, bookingsPerHour, bookingsPerStaff,
 		studentsTotal, studentsSeated, studentsWaiting: studentsTotal - studentsSeated,
-		checkinByClass, conflicts,
+		checkinByClass, tuBreakdown, conflicts,
 	});
 }

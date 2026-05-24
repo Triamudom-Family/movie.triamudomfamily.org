@@ -13,6 +13,7 @@ export async function GET(req: Request) {
 	const q = searchParams.get("q")?.trim() ?? "";
 	const cls = searchParams.get("class")?.trim() ?? "";
 	const seat = searchParams.get("seat") ?? ""; // "booked" | "unbooked" | ""
+	const batch = searchParams.get("batch")?.trim() ?? "";
 	const eventId = await getCurrentEventId();
 
 	const students = await prisma.student.findMany({
@@ -28,6 +29,7 @@ export async function GET(req: Request) {
 					}
 				: {}),
 			...(cls ? {class: {equals: cls, mode: "insensitive"}} : {}),
+			...(batch ? {email: {startsWith: batch}} : {}),
 			...(seat === "booked"
 				? {seatId: {not: null}}
 				: seat === "unbooked"

@@ -38,6 +38,7 @@ type Analytics = {
 	studentsSeated: number;
 	studentsWaiting: number;
 	checkinByClass: { class: string; total: number; seated: number }[];
+	tuBreakdown: { tu: string; total: number; seated: number }[];
 	conflicts: {
 		bookedNoStudent: string[];
 		studentSeatMismatch: { studentId: string; name: string; seatId: string; seatStatus: string }[];
@@ -371,10 +372,10 @@ export function AdminDashboard() {
 				)}
 				<div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
 					<Stat label="Total seats" value={analytics?.summary.total ?? "—"}/>
+					<Stat label="Available" value={analytics?.summary.available ?? "—"} accent="green"/>
 					<Stat label="Booked" value={analytics?.summary.booked ?? "—"} accent="red"/>
 					<Stat label="Blocked" value={analytics?.summary.blocked ?? "—"} accent={analytics && analytics.summary.blocked > 0 ? "amber" : "zinc"}/>
 					<Stat label="Broken" value={analytics?.summary.broken ?? "—"} accent={analytics && analytics.summary.broken > 0 ? "amber" : "zinc"}/>
-					<Stat label="Available" value={analytics?.summary.available ?? "—"} accent="green"/>
 					<Stat
 						label="Fill rate"
 						value={pctBooked !== null ? `${pctBooked}%` : "—"}
@@ -383,8 +384,47 @@ export function AdminDashboard() {
 				</div>
 				<div className="grid gap-2 grid-cols-2">
 					<Stat label="Students registered" value={analytics?.studentsTotal ?? "—"}/>
-					<Stat label="Not registered" value={analytics?.studentsWaiting ?? "—"} accent={analytics && analytics.studentsWaiting > 0 ? "amber" : "zinc"}/>
+					<Stat label="Awaiting seat" value={analytics?.studentsWaiting ?? "—"} accent={analytics && analytics.studentsWaiting > 0 ? "amber" : "zinc"}/>
 				</div>
+				{analytics && analytics.tuBreakdown.length > 0 && show.checkinByTu && (
+					<Card>
+						<CardHeader><CardTitle>Registration by TU</CardTitle></CardHeader>
+						<CardContent>
+							<div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+								{analytics.tuBreakdown.map((t) => {
+									const pct = t.total > 0 ? Math.round((t.seated / t.total) * 100) : 0;
+									const fillColor = pct >= 80 ? "#22c55e" : pct >= 50 ? "#f59e0b" : "#06b6d4";
+									const label = t.tu === "—" ? "Unknown TU" : `TU ${t.tu}`;
+									return (
+										<div
+											key={t.tu}
+											className="rounded-md border border-zinc-700 bg-zinc-900 p-3 text-xs flex flex-col gap-2"
+										>
+											<div className="flex items-center gap-1.5">
+												<span className="font-semibold text-sm flex-1 min-w-0 truncate text-cyan-400">
+													{label}
+												</span>
+												<span className="text-[10px] text-zinc-400 shrink-0">{pct}%</span>
+											</div>
+											<div className="h-1.5 w-full rounded-full bg-zinc-700 overflow-hidden">
+												<div
+													className="h-full rounded-full transition-all"
+													style={{width: `${pct}%`, backgroundColor: fillColor}}
+												/>
+											</div>
+											<div className="flex justify-between text-zinc-400">
+												<span>
+													<span className="text-foreground font-medium">{t.total}</span> registered
+												</span>
+												<span className="text-emerald-400">{t.seated} seated</span>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</CardContent>
+					</Card>
+				)}
 				{analyticsError && (
 					<div className="flex items-center justify-between rounded-md border border-rose-800 bg-rose-950/40 px-4 py-2.5 text-sm text-rose-300">
 						<span>Analytics failed to load — stats may be outdated.</span>
@@ -902,6 +942,7 @@ export function AdminDashboard() {
 					</CardContent>
 				</Card>
 			)}
+
 		</div>
 
 		{/* Zone block confirmation dialog */}
