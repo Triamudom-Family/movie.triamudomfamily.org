@@ -65,8 +65,8 @@ const MAIN_ROWS: RowSpec[] = [
 	...(["M", "L", "K", "J", "I", "H", "G"] as const).map((row) => ({
 		row, type: "honeymoon" as SeatType, blocks: [
 			{start: 2, count: 15, section: "left" as SeatSection},
-			{start: 20, count: 2, section: "center" as SeatSection, type: "privilege_plus" as SeatType},
-			{start: 29, count: 2, section: "center" as SeatSection, type: "privilege_plus" as SeatType},
+			{start: 19, count: 2, section: "center" as SeatSection, type: "privilege_plus" as SeatType},
+			{start: 28, count: 2, section: "center" as SeatSection, type: "privilege_plus" as SeatType},
 			{start: 33, count: 15, section: "right" as SeatSection},
 		],
 	})),
@@ -74,7 +74,7 @@ const MAIN_ROWS: RowSpec[] = [
 	{
 		row: "F", type: "honeymoon", blocks: [
 			{start: 2, count: 15, section: "left"},
-			{start: 20, count: 11, section: "center", type: "privilege_plus" as SeatType},
+			{start: 19, count: 11, section: "center", type: "privilege_plus" as SeatType},
 			{start: 33, count: 15, section: "right"},
 		],
 	},
@@ -82,7 +82,7 @@ const MAIN_ROWS: RowSpec[] = [
 	{
 		row: "E", type: "honeymoon", blocks: [
 			{start: 2, count: 15, section: "left"},
-			{start: 20, count: 11, section: "center", type: "privilege_plus" as SeatType},
+			{start: 19, count: 11, section: "center", type: "privilege_plus" as SeatType},
 			{start: 33, count: 15, section: "right"},
 		],
 	},
@@ -90,7 +90,7 @@ const MAIN_ROWS: RowSpec[] = [
 	{
 		row: "D", type: "honeymoon", blocks: [
 			{start: 2, count: 15, section: "left"},
-			{start: 20, count: 11, section: "center", type: "privilege_plus" as SeatType},
+			{start: 19, count: 11, section: "center", type: "privilege_plus" as SeatType},
 			{start: 33, count: 13, section: "right"},
 		],
 	},
@@ -213,6 +213,10 @@ function buildLayout(): {
 			separators.push({gridRow, label: "Honeymoon Zone"});
 			gridRow++;
 		}
+		if (spec.row === "C") {
+			separators.push({gridRow, label: ""});
+			gridRow++;
+		}
 		all.push(...expandRow(spec, gridRow));
 		rowLabels.push({row: spec.row, gridRow});
 		gridRow++;
@@ -220,6 +224,10 @@ function buildLayout(): {
 	const mainRowCount = gridRow - 1;
 	gridRow += 1; // visual gap between main and 2nd floor
 	for (const spec of FRONT_ROWS) {
+		if (spec.row === "FF") {
+			separators.push({gridRow, label: ""});
+			gridRow++;
+		}
 		all.push(...expandRow(spec, gridRow));
 		rowLabels.push({row: spec.row, gridRow});
 		gridRow++;

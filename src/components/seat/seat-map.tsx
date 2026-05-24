@@ -129,8 +129,32 @@ export function SeatMap({
 				>
 					{isFullscreen ? <Minimize2 className="h-4 w-4"/> : <Maximize2 className="h-4 w-4"/>}
 				</button>
-				<div className="mb-2 text-[10px] uppercase tracking-[0.4em] text-zinc-500 text-center">
-					── Screen ──
+				<div aria-hidden className="mb-3 mx-auto min-[1400px]:hidden" style={{width: "min(100%, 320px)"}}>
+					<div className="h-1.5 rounded-t-[50%] bg-gradient-to-b from-white/30 via-white/10 to-transparent border-t border-x border-white/40 shadow-[0_6px_18px_-6px_rgba(255,255,255,0.25)]"/>
+					<div className="mt-1 text-[9px] uppercase tracking-[0.5em] text-zinc-400 text-center">Screen</div>
+				</div>
+				<div
+					aria-hidden
+					className="hidden min-[1400px]:block mx-auto mb-4"
+					style={{width: `${SEAT_LAYOUT.cols * 16 + (SEAT_LAYOUT.cols - 1) * 3}px`}}
+				>
+					<div className="mx-16 h-2.5 rounded-t-[50%] bg-gradient-to-b from-white/35 via-white/15 to-transparent border-t border-x border-white/50 shadow-[0_8px_24px_-6px_rgba(255,255,255,0.25)]"/>
+					<div className="mt-1 text-[11px] uppercase tracking-[0.6em] text-zinc-400 text-center">Screen</div>
+					<div
+						className="mt-3 grid"
+						style={{
+							gridTemplateColumns: `repeat(${SEAT_LAYOUT.cols}, 16px)`,
+							gridAutoRows: "16px",
+							gap: "3px",
+						}}
+					>
+						<div
+							style={{gridColumn: "19 / 31", gridRow: "span 2"}}
+							className="flex items-center justify-center rounded border border-zinc-700/70 bg-zinc-800/40 text-[10px] uppercase tracking-[0.3em] text-zinc-400 select-none"
+						>
+							Stage
+						</div>
+					</div>
 				</div>
 				<div
 					className="relative mx-auto"
@@ -145,6 +169,20 @@ export function SeatMap({
 					{SEAT_LAYOUT.separators.map((sep) => (
 						<div key={`sep-${sep.gridRow}`} aria-hidden style={{gridRow: sep.gridRow}}/>
 					))}
+					{(() => {
+						const cRow = ROW_LABELS.find((r) => r.row === "C")?.gridRow;
+						const aRow = ROW_LABELS.find((r) => r.row === "A")?.gridRow;
+						if (!cRow || !aRow) return null;
+						return (
+							<div
+								aria-hidden
+								style={{gridRow: `${cRow} / ${aRow + 1}`, gridColumn: "19 / 30"}}
+								className="flex items-center justify-center rounded border border-zinc-700/70 bg-zinc-800/40 text-[10px] uppercase tracking-[0.3em] text-zinc-400 select-none"
+							>
+								Projection Room
+							</div>
+						);
+					})()}
 					{ROW_LABELS.map((r) => (
 						<div
 							key={`lbl-l-${r.row}`}
