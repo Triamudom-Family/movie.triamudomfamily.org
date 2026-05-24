@@ -66,7 +66,7 @@ function Card({
 }) {
 	return (
 		<div
-			className="w-[500px] max-w-[calc(100vw-32px)] rounded-[14px] border-[0.5px] border-white/10 bg-[rgba(20,20,28,0.55)] p-[30px] backdrop-blur-[20px] sm:p-[30px]"
+			className="w-fit min-w-[min(440px,calc(100vw-32px))] max-w-[min(500px,calc(100vw-32px))] rounded-[14px] border-[0.5px] border-white/10 bg-[rgba(20,20,28,0.55)] p-[30px] backdrop-blur-[20px] sm:p-[30px]"
 			style={{
 				boxShadow:
 					"0 0 50px rgba(236,72,153,0.10), 0 20px 40px -10px rgba(0,0,0,0.5)",
@@ -106,9 +106,9 @@ export default async function RegisterPage() {
 				title="ลงทะเบียนนักเรียน"
 				subtitle={
 					<>
-						<span className="whitespace-nowrap">ลงทะเบียนด้วยบัญชี Google</span>{" "}
-						<span className="whitespace-nowrap">ของโรงเรียน ({STUDENT_DOMAIN})</span>{" "}
-						<span className="whitespace-nowrap">เพื่อลงทะเบียน</span>
+						<span className="whitespace-nowrap">ลงทะเบียนด้วยบัญชี Google ของโรงเรียน</span>
+						<br/>
+						<span className="whitespace-nowrap">({STUDENT_DOMAIN}) เพื่อลงทะเบียน</span>
 					</>
 				}
 			>
