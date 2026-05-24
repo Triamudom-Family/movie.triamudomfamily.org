@@ -21,6 +21,10 @@ export async function bookSeat(input: BookSeatInput): Promise<BookSeatResult> {
 
 	try {
 		const result = await prisma.$transaction(async (tx) => {
+			// Row-lock the target seat for the duration of the transaction so
+			// concurrent bookings serialize and the status check below is race-free.
+			await tx.$executeRaw`SELECT 1 FROM movie."Seat" WHERE "eventId" = ${eventId} AND "id" = ${seatId} FOR UPDATE`;
+
 			const seat = await tx.seat.findUnique({where: {eventId_id: {eventId, id: seatId}}});
 			if (!seat) throw new Error("SEAT_NOT_FOUND");
 
