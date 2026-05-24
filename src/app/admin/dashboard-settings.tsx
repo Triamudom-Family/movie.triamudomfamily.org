@@ -11,6 +11,7 @@ type ShowSettings = {
 	rowOverview: boolean;
 	sectionBlocks: boolean;
 	checkinByRoom: boolean;
+	checkinByTu: boolean;
 	doubleBookingConflicts: boolean;
 };
 
@@ -22,6 +23,7 @@ const DEFAULTS: ShowSettings = {
 	rowOverview: false,
 	sectionBlocks: true,
 	checkinByRoom: true,
+	checkinByTu: true,
 	doubleBookingConflicts: true,
 };
 
@@ -90,6 +92,8 @@ export function DashboardSettingsButton() {
 						<ToggleRow label="Seat type breakdown" on={show.seatTypeBreakdown} onToggle={() => toggleShow("seatTypeBreakdown")}/>
 						<ToggleRow label="Recent bookings" on={show.recentBookings} onToggle={() => toggleShow("recentBookings")}/>
 						<ToggleRow label="Row overview" on={show.rowOverview} onToggle={() => toggleShow("rowOverview")}/>
+						<ToggleRow label="Check-in by room" on={show.checkinByRoom} onToggle={() => toggleShow("checkinByRoom")}/>
+						<ToggleRow label="TU counts" on={show.checkinByTu} onToggle={() => toggleShow("checkinByTu")}/>
 					</div>
 					<p className="mb-2 mt-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Blocks</p>
 					<div className="space-y-2">
