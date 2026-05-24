@@ -9,8 +9,8 @@ export function AuthShell({children}: {children: React.ReactNode}) {
 				className="pointer-events-none absolute inset-0 z-0 print:hidden"
 				style={{
 					background: [
-						"radial-gradient(ellipse 280px 45px at 50% 0%, rgba(236,72,153,0.18), transparent 60%)",
-						"radial-gradient(ellipse 220px 35px at 80% 0%, rgba(168,85,247,0.10), transparent 55%)",
+						"radial-gradient(ellipse 420px 80px at 50% 0%, rgba(236,72,153,0.28), transparent 65%)",
+						"radial-gradient(ellipse 340px 70px at 80% 0%, rgba(168,85,247,0.18), transparent 60%)",
 					].join(", "),
 				}}
 			/>
