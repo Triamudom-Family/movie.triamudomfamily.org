@@ -22,8 +22,21 @@ async function httpBroadcast(
 	} catch { /* non-fatal — realtime is best-effort */ }
 }
 
-export async function broadcastSeatUpdate(seat: string, status: SeatBroadcastStatus) {
-	await httpBroadcast([{topic: "seats", event: "seat-update", payload: {seat, status}}]);
+export type SeatBookingStudent = {
+	studentId: string;
+	name: string;
+	class: string;
+	rollNumber: number;
+};
+
+export async function broadcastSeatUpdate(
+	seat: string,
+	status: SeatBroadcastStatus,
+	student?: SeatBookingStudent,
+) {
+	await httpBroadcast([
+		{topic: "seats", event: "seat-update", payload: {seat, status, student: student ?? null}},
+	]);
 }
 
 export async function broadcastSeatUpdates(
@@ -32,4 +45,17 @@ export async function broadcastSeatUpdates(
 	await httpBroadcast(
 		updates.map((u) => ({topic: "seats", event: "seat-update", payload: u})),
 	);
+}
+
+export type RegistrationBroadcast = {
+	studentId: string;
+	name: string;
+	class: string;
+	rollNumber: number;
+};
+
+export async function broadcastRegistration(payload: RegistrationBroadcast) {
+	await httpBroadcast([
+		{topic: "registrations", event: "student-registered", payload},
+	]);
 }

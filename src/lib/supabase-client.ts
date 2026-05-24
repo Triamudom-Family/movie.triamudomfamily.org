@@ -19,3 +19,6 @@ export function getSupabaseClient() {
 
 export const SEAT_CHANNEL = "seats";
 export const SEAT_EVENT = "seat-update";
+
+export const REGISTRATION_CHANNEL = "registrations";
+export const REGISTRATION_EVENT = "student-registered";

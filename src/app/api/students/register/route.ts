@@ -3,6 +3,7 @@ import {z} from "zod";
 import {prisma} from "@/server/prisma";
 import {getSession} from "@/server/session";
 import {getCurrentEventId} from "@/server/event";
+import {broadcastRegistration} from "@/server/realtime";
 
 const STUDENT_DOMAIN =
 	process.env.STUDENT_EMAIL_DOMAIN ?? "@student.triamudom.ac.th";
@@ -102,6 +103,13 @@ export async function POST(req: Request) {
 	await prisma.user.update({
 		where: {id: session.user.id},
 		data: {role: "STUDENT", name: `${data.name} ${data.surname}`},
+	});
+
+	await broadcastRegistration({
+		studentId: student.studentId,
+		name: `${student.name} ${student.surname}`,
+		class: student.class,
+		rollNumber: student.rollNumber,
 	});
 
 	return NextResponse.json({student}, {status: 201});
