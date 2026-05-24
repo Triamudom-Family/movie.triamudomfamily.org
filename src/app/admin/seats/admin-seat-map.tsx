@@ -3,7 +3,7 @@
 import {useState} from "react";
 import {toast} from "sonner";
 import {SeatMap, type SeatStatusMap, type SeatStatusValue} from "@/components/seat/seat-map";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Card, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {
@@ -193,10 +193,7 @@ export function AdminSeatMap({initialStatus}: { initialStatus: SeatStatusMap }) 
 	return (
 		<>
 			<Card>
-				<CardHeader>
-					<CardTitle>Seat map</CardTitle>
-				</CardHeader>
-				<CardContent>
+				<CardContent className="pt-6">
 					<SeatMap
 						initialStatus={initialStatus}
 						isAdmin
