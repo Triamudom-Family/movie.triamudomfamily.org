@@ -105,7 +105,7 @@ export function SeatMap({
 				});
 			} catch { /* ignore */ }
 		};
-		const id = setInterval(tick, 30_000);
+		const id = setInterval(tick, 1_000);
 		return () => clearInterval(id);
 	}, []);
 
